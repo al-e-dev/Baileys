@@ -1,6 +1,6 @@
 export const convertTimeOut = (ms: number) => {
     if (ms < 0) {
-        throw new Error("Invalid time value. Milliseconds cannot be negative.")
+        throw new Boom('Invalid time value. Milliseconds cannot be negative.', { statusCode: 400 })
     }
 
     const units = [
