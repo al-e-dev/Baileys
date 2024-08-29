@@ -415,23 +415,6 @@ export const generateWAMessageContent = async(
 			(message.disappearingMessagesInChat ? WA_DEFAULT_EPHEMERAL : 0) :
 			message.disappearingMessagesInChat
 		m = prepareDisappearingMessageSettingContent(exp)
-	} else if('groupInvite' in message) {
-		m.groupInviteMessage = {}
-		m.groupInviteMessage.inviteCode = message.groupInvite.inviteCode
-		m.groupInviteMessage.inviteExpiration = message.groupInvite.inviteExpiration
-		m.groupInviteMessage.caption = message.groupInvite.text
-
-		m.groupInviteMessage.groupJid = message.groupInvite.jid
-		m.groupInviteMessage.groupName = message.groupInvite.subject
-		if(options.getProfilePicUrl) {
-			const pfpUrl = await options.getProfilePicUrl(message.groupInvite.jid, 'preview')
-			if(pfpUrl) {
-				const resp = await axios.get(pfpUrl, { responseType: 'arraybuffer' })
-				if(resp.status === 200) {
-					m.groupInviteMessage.jpegThumbnail = resp.data
-				}
-			}
-		}
 	} else if('buttonReply' in message) {
 		switch (message.type) {
 		case 'template':
@@ -463,9 +446,8 @@ export const generateWAMessageContent = async(
 		})
 	} else if('listReply' in message) {
 		m.listResponseMessage = { ...message.listReply }
-} else if('poll' in message) {
+	} else if('poll' in message) {
 		message.poll.selectableCount ||= 0
-		message.poll.toAnnouncementGroup ||= false
 
 		if(!Array.isArray(message.poll.values)) {
 			throw new Boom('Invalid poll values', { statusCode: 400 })
@@ -482,23 +464,14 @@ export const generateWAMessageContent = async(
 		}
 
 		m.messageContextInfo = {
+			// encKey
 			messageSecret: message.poll.messageSecret || randomBytes(32),
 		}
 
-		const pollCreationMessage = {
+		m.pollCreationMessage = {
 			name: message.poll.name,
 			selectableOptionsCount: message.poll.selectableCount,
 			options: message.poll.values.map(optionName => ({ optionName })),
-		}
-
-		if (message.poll.toAnnouncementGroup) {
-			m.pollCreationMessageV2 = pollCreationMessage
-		} else {
-			if(message.poll.selectableCount > 0) {
-				m.pollCreationMessageV3 = pollCreationMessage
-			} else {
-				m.pollCreationMessage = pollCreationMessage
-			}
 		}
 	} else if('sharePhoneNumber' in message) {
 		m.protocolMessage = {
