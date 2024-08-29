@@ -13,7 +13,7 @@ type ProcessSenderKeyDistributionMessageOpts = {
 
 type DecryptSignalProtoOpts = {
 	jid: string
-	type: 'pkmsg' | 'msg'
+	type: 'pkmsg' | 'msg' | 'msmsg'
 	ciphertext: Uint8Array
 }
 

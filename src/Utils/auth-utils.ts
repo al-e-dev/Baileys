@@ -125,7 +125,7 @@ export const addTransactionCapability = (
 					}, { }
 				)
 			} else {
-				return state.get(type, ids)
+				return await state.get(type, ids)
 			}
 		},
 		set: data => {
