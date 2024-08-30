@@ -185,7 +185,6 @@ export const decryptMessageNode = (
 							break
 						case 'pkmsg':
 						case 'msg':
-							case 'msmsg':
 							const user = isJidUser(sender) ? sender : author
 							msgBuffer = await repository.decryptMessage({
 								jid: user,
@@ -195,6 +194,11 @@ export const decryptMessageNode = (
 							break
 							case 'plaintext':
 								msgBuffer = content
+								break
+							case 'msmsg':
+								const enc = binaryNodeToString(content)
+								msgBuffer = content
+								logger.debug(content, enc)
 								break
 						default:
 							throw new Error(`Unknown e2e type: ${e2eType}`)
