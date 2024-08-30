@@ -840,6 +840,7 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 									: undefined
 							},
 						),
+						getProfilePicUrl: sock.profilePictureUrl,
 						upload: async(readStream: Readable, opts: WAMediaUploadFunctionOpts) => {
 							const up = await waUploadToServer(readStream, { ...opts, newsletter: isJidNewsletter(jid) })
 							mediaHandle = up.handle
@@ -847,11 +848,13 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 						},
 						mediaCache: config.mediaCache,
 						options: config.options,
+						messageId: generateMessageIDV2(sock.user?.id),
 						...options,
 					}
 				)
 				const isDeleteMsg = 'delete' in content && !!content.delete
 				const isEditMsg = 'edit' in content && !!content.edit
+				const isPinMsg = 'pin' in content && !!content.pin
 				const additionalAttributes: BinaryNodeAttributes = { }
 				// required for delete
 				if(isDeleteMsg) {
@@ -863,6 +866,8 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 					}
 				} else if(isEditMsg) {
 					additionalAttributes.edit = isJidNewsletter(jid) ? '3' : '1'
+				} else if (isPinMsg) {
+					additionalAttributes.edit = '2'
 				}
 
 				if (mediaHandle) {
