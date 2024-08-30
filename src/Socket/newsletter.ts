@@ -1,9 +1,9 @@
-import { NewsLetterMetadata, RectionSettingsNewsletter, SocketConfig, WAMediaUpload } from '../Types'
+import { ACTION_NEWSLETTER, ACTION_NEWSLETTER_FOLLOWER, MUTE_NEWSLETTER_SETTINGS, NEWSLETTER_METADATA, ROLE_NEWSLETTER, SocketConfig, UPDATE_OPTIONS_NEWSLETTER, WAMediaUpload } from '../Types'
 import { generateProfilePicture } from '../Utils'
-import { getBinaryNodeChildString, S_WHATSAPP_NET } from '../WABinary'
+import { getBinaryNodeChildString, BinaryNode, getBinaryNodeChild, S_WHATSAPP_NET } from '../WABinary'
 import { makeGroupsSocket } from './groups'
 
-enum QueryId {
+enum IDs {
 	METADATA = '6620195908089573',
 	GETSUBSCRIBED = '6388546374527196',
 	CREATE = '6996806640408138',
@@ -15,10 +15,11 @@ enum QueryId {
 }
 
 export const makeNewsLetterSocket = (config: SocketConfig) => {
-	const { authState, signalRepository, query, generateMessageTag } = sock
+	const sock = makeGroupsSocket(config)
+	const { query, generateMessageTag } = sock
 	const encoder = new TextEncoder()
 	
-	const newsletterQuery = async(jid: string | undefined, query_id: QueryId, content?: object) => (
+	const newsletterQuery = async(jid: string | undefined, query_id: IDs, content?: object) => (
 	    query({
 	        tag: "iq",
 	        attrs: {
@@ -41,28 +42,12 @@ export const makeNewsLetterSocket = (config: SocketConfig) => {
 	        }]
         })
     )
-	
-	const newsLetterQuery = async(jid: string, type: "get" | "set", content: BinaryNode[]) => (
-	    query({
-	        tag: "iq",
-	        attrs: {
-	            id: generateMessageTag(),
-	            type,
-	            xmlns: "newsLetter",
-	            to: jid,
-	            
-	        },
-	        content
-	    })
-    )
-
-
 	/**
      *
      * @param code https://whatsapp.com/channel/key
      */
-	const getNewsletterMetadata = async(key: string): Promise<NewsLetterMetadata> => {
-	    const result = await newsletterQuery(undefined, QueryId.METADATA, {
+	const getNewsletterMetadata = async(type: "invite" | "jid", key: string, role?: ROLE_NEWSLETTER): Promise<NEWSLETTER_METADATA> => {
+	    const result = await newsletterQuery(undefined, IDs.METADATA, {
 	        input: {
 	            key,
 	            type: type.toUpperCase(),
@@ -83,8 +68,8 @@ export const makeNewsLetterSocket = (config: SocketConfig) => {
 		return extractNewsLetter(json.data?.xwa2_newsletter)
 	}
 
-	const getSubscribedNewsletters = async(): Promise<NewsLetterMetadata[]> => {
-		const result = await newsletterQuery(undefined, QueryId.GETSUBSCRIBED)
+	const getNewsletters = async(): Promise<[NEWSLETTER_METADATA]> => {
+		const result = await newsletterQuery(undefined, IDs.GETSUBSCRIBED)
 
 		const node = getBinaryNodeChildString(result, 'result')
 		const json = JSON.parse(node!)
@@ -92,17 +77,18 @@ export const makeNewsLetterSocket = (config: SocketConfig) => {
 			throw new Error('Error while fetch subscribed newsletters ' + json)
 		}
 
-		return json.data.xwa2_newsletter_subscribed.map((v: any) => extractNewsletterMetadata(v))
+		return json.data.xwa2_newsletter_subscribed.map((v: any) => extractNewsLetter(v))
 	}
 
-	const createNewsLetter = async(name: string, desc?: string, picture?: WAMediaUpload): Promise<NewsLetterMetadata> => {
-		const result = await newsletterQuery({
+	const createNewsLetter = async(name: string, description?: string, picture?: WAMediaUpload): Promise<NEWSLETTER_METADATA> => {
+
+		const result = await newsletterQuery(undefined, IDs.CREATE, {
 			input: {
 				name,
-				description: desc ?? null,
+				description: description ?? null,
 				picture: picture ? (await generateProfilePicture(picture)).img.toString('base64') : null
 			}
-		}, QueryId.CREATE)
+		})
 
 		const node = getBinaryNodeChildString(result, 'result')
 		const json = JSON.parse(node!)
@@ -110,201 +96,92 @@ export const makeNewsLetterSocket = (config: SocketConfig) => {
 			throw new Error('Error while create newsletter ' + json)
 		}
 
-		return extractNewsletterMetadata(json.data?.xwa2_newsletter_create)
+		return extractNewsLetter(json.data?.xwa2_newsletter_create)
 	}
 
-
-	const toggleMuteNewsletter = async(jid: string, mute: boolean) => {
-		let queryId = QueryId.UNMUTE
-		if(mute) {
-			queryId = QueryId.MUTE
-		}
-
-		const result = await newsletterQuery({
+	const muteNewsletter = async(jid: string, action: MUTE_NEWSLETTER_SETTINGS) => {
+		const queryId = action === 'mute' ? IDs.MUTE : IDs.UNMUTE;
+	
+		const result = await newsletterQuery(undefined, queryId, {
 			'newsletter_id': jid
-		}, queryId)
+		});
+		
+		const node = getBinaryNodeChildString(result, 'result');
+		const json = JSON.parse(node!);
+		return json;
+	};
+
+	const followNewsletter = async(jid: string, action: ACTION_NEWSLETTER_FOLLOWER) => {
+		const queryId = action === 'follow' ? IDs.FOLLOW : IDs.UNFOLLOW
+		const result = await newsletterQuery(undefined, queryId, {
+			'newsletter_id': jid
+		})
 		const node = getBinaryNodeChildString(result, 'result')
 		const json = JSON.parse(node!)
 		return json
 	}
 
-	const followNewsletter = async(jid: string) => {
-		const result = await newsletterQuery({
-			'newsletter_id': jid
-		}, QueryId.FOLLOW)
-		const node = getBinaryNodeChildString(result, 'result')
-		const json = JSON.parse(node!)
-		return json
-	}
-
-	const unFollowNewsletter = async(jid: string) => {
-		const result = await newsletterQuery({
-			'newsletter_id': jid
-		}, QueryId.UNFOLLOW)
-		const node = getBinaryNodeChildString(result, 'result')
-		const json = JSON.parse(node!)
-		return json
-	}
-
-	const updateNewsletterName = async(jid: string, name: string) => {
-		const result = await newsletterQuery({
+	const updateNewsletter = async(jid: string, updates: UPDATE_OPTIONS_NEWSLETTER) => {
+		const { name, description, picture, reaction } = updates
+	
+		const result = await newsletterQuery(undefined, IDs.UPDATE, {
 			'newsletter_id': jid,
 			updates: {
-				name,
-				description: undefined,
-				picture: undefined,
-				settings: null
+				name: name || undefined,
+				description: description || undefined,
+				picture: picture
+					? typeof picture === 'string'
+						? picture
+						: (await generateProfilePicture(picture)).img.toString('base64')
+					: undefined,
+				settings: reaction
+					? {
+						'reaction_codes': { value: reaction }
+					}
+					: null
 			}
-		}, QueryId.UPDATE)
-
+		})
+	
 		const node = getBinaryNodeChildString(result, 'result')
-		const json = JSON.parse(node!)
-		if(!json.data) {
-			throw new Error('Error while update newsletter ' + json)
+		const json = JSON.parse(node!);
+		if (!json.data) {
+			throw new Error('Error while updating newsletter ' + JSON.stringify(json));
 		}
-
-		return extractNewsletterMetadata(json.data?.xwa2_newsletter_update)
-	}
-
-	const updateNewsletterDesc = async(jid: string, description: string) => {
-		const result = await newsletterQuery({
-			'newsletter_id': jid,
-			updates: {
-				name: undefined,
-				description,
-				picture: undefined,
-				settings: null
-			}
-		}, QueryId.UPDATE)
-
-		const node = getBinaryNodeChildString(result, 'result')
-		const json = JSON.parse(node!)
-		if(!json.data) {
-			throw new Error('Error while update newsletter ' + json)
-		}
-
-		return extractNewsletterMetadata(json.data?.xwa2_newsletter_update)
-	}
-
-	const updateNewsletterPicture = async(jid: string, picture: WAMediaUpload) => {
-		const result = await newsletterQuery({
-			'newsletter_id': jid,
-			updates: {
-				name: undefined,
-				description: undefined,
-				picture: (await generateProfilePicture(picture)).img.toString('base64'),
-				settings: null
-			}
-		}, QueryId.UPDATE)
-
-		const node = getBinaryNodeChildString(result, 'result')
-		const json = JSON.parse(node!)
-		if(!json.data) {
-			throw new Error('Error while update newsletter ' + json)
-		}
-
-		return extractNewsletterMetadata(json.data?.xwa2_newsletter_update)
-	}
-
-	const removeNewsletterPicture = async(jid: string) => {
-		const result = await newsletterQuery({
-			'newsletter_id': jid,
-			updates: {
-				name: undefined,
-				description: undefined,
-				picture: '',
-				settings: null
-			}
-		}, QueryId.UPDATE)
-
-		const node = getBinaryNodeChildString(result, 'result')
-		const json = JSON.parse(node!)
-		if(!json.data) {
-			throw new Error('Error while update newsletter ' + json)
-		}
-
-		return extractNewsletterMetadata(json.data?.xwa2_newsletter_update)
-	}
-
-	const updateNewsletterReactionSetting = async(jid: string, value: RectionSettingsNewsletter) => {
-		const result = await newsletterQuery({
-			'newsletter_id': jid,
-			updates: {
-				name: undefined,
-				description: undefined,
-				picture: undefined,
-				settings: {
-					'reaction_codes': { value }
-				}
-			}
-		}, QueryId.UPDATE)
-
-		const node = getBinaryNodeChildString(result, 'result')
-		const json = JSON.parse(node!)
-		if(!json.data) {
-			throw new Error('Error while update newsletter ' + json)
-		}
-
-		return extractNewsletterMetadata(json.data?.xwa2_newsletter_update)
-	}
+	
+		return extractNewsLetter(json.data?.xwa2_newsletter_update);
+	};
 
 	return {
 		...sock,
-		getNewsletterInfo,
+		getNewsletterMetadata,
+		getNewsletters,
 		createNewsLetter,
-		getSubscribedNewsletters,
-		toggleMuteNewsletter,
 		followNewsletter,
-		unFollowNewsletter,
-		updateNewsletterName,
-		updateNewsletterDesc,
-		updateNewsletterPicture,
-		updateNewsletterReactionSetting,
-		removeNewsletterPicture
+		updateNewsletter,
+		muteNewsletter
 	}
 }
 
+export const extractNewsLetter = (data: any) => {
 
-export const extractNewsletterMetadata = (data: any): NewsLetterMetadata => {
-	return {
-		id: data.id,
-		state: data.state,
-		creationTime: +data.thread_metadata.creation_time,
-		inviteCode: data.thread_metadata.invite,
-		name: data.thread_metadata.name.text,
-		desc: data.thread_metadata.description.text,
-		subscriberCount: +data.thread_metadata.subscribers_count,
-		verification: data.thread_metadata.verification,
-		picture: data.thread_metadata.picture?.direct_path,
-		preview: data.thread_metadata.preview.direct_path,
-		settings: {
-			reaction: data.thread_metadata.settings?.reaction_codes.value
-		},
-		mute: data.viewer_metadata?.mute,
-		role: data.viewer_metadata?.role
-	}
-}
-
-export const extractNewsLetter = (node: BinaryNode, isCreate?: boolean) => {
-  const result = getBinaryNodeChild(node, "result")?.content?.toString()
-  const metadataPath = JSON.parse(result!).data[isCreate ? XWAPaths.CREATE: XWAPaths.newsLetter]
-
-  const metadata: newsLetterMetadata = {
-    id: metadataPath.id,
-    state: metadataPath.state.type,
-    creation_time: +metadataPath.thread_metadata.creation_time,
-    name: metadataPath.thread_metadata.name.text,
-    nameTime: +metadataPath.thread_metadata.name.update_time,
-    description: metadataPath.thread_metadata.description.text,
-    descriptionTime: +metadataPath.thread_metadata.description.update_time,
-    invite: metadataPath.thread_metadata.invite,
-    handle: metadataPath.thread_metadata.handle,
-    picture: metadataPath.thread_metadata.picture?.direct_path || null,
-    preview: metadataPath.thread_metadata.preview?.direct_path || null,
-    reaction_codes: metadataPath.thread_metadata.settings.reaction_codes.value,
-    subscribers: +metadataPath.thread_metadata.subscribers_count,
-    verification: metadataPath.thread_metadata.verification,
-    viewer_metadata: metadataPath.viewer_metadata
+  const metadata: NEWSLETTER_METADATA = {
+    id: data.id,
+    state: data.state.type,
+    creation_time: +data.thread_metadata.creation_time,
+    name: data.thread_metadata.name.text,
+    name_time: +data.thread_metadata.name.update_time,
+    description: data.thread_metadata.description.text,
+    description_time: +data.thread_metadata.description.update_time,
+    invite: data.thread_metadata.invite,
+    handle: data.thread_metadata.handle,
+    picture: data.thread_metadata.picture?.direct_path || null,
+    preview: data.thread_metadata.preview?.direct_path || null,
+    settings: {
+		reaction: data.thread_metadata.settings.reaction_codes.value
+	},
+    subscribers: +data.thread_metadata.subscribers_count,
+    verification: data.thread_metadata.verification,
+    viewer_metadata: data.viewer_metadata
   }
 
   return metadata
