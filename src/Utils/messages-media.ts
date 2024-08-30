@@ -653,6 +653,7 @@ export const getWAUploadToServer = (
 	refreshMediaConn: (force: boolean) => Promise<MediaConnInfo>,
 ): WAMediaUploadFunction => {
 	return async(stream, { mediaType, fileEncSha256B64, newsletter, timeoutMs }) => {
+		const { default: axios } = await import('axios')
 		// send a query JSON to obtain the url & auth token to upload our media
 		let uploadInfo = await refreshMediaConn(false)
 
@@ -668,7 +669,6 @@ export const getWAUploadToServer = (
 
 		const reqBody = Buffer.isBuffer(stream) ? stream : Buffer.concat(chunks)
 		fileEncSha256B64 = encodeBase64EncodedStringForUpload(fileEncSha256B64)
-		
 		let media = MEDIA_PATH_MAP[mediaType]
 		if (newsletter) {
 			media = media?.replace('/mms/', '/newsletter/newsletter-')
@@ -681,13 +681,13 @@ export const getWAUploadToServer = (
 			const url = `https://${hostname}${media}/${fileEncSha256B64}?auth=${auth}&token=${fileEncSha256B64}`
 			let result: any
 			try {
-
 				if(maxContentLengthBytes && reqBody.length > maxContentLengthBytes) {
 					throw new Boom(`Body too large for "${hostname}"`, { statusCode: 413 })
 				}
+
 				const body = await axios.post(
 					url,
-					stream,
+					reqBody,
 					{
 						...options,
 						headers: {
@@ -703,7 +703,6 @@ export const getWAUploadToServer = (
 					}
 				)
 				result = body.data
-
 				if(result?.url || result?.directPath) {
 					urls = {
 						mediaUrl: result.url,
