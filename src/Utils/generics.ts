@@ -4,6 +4,7 @@ import { createHash, randomBytes } from 'crypto'
 import { platform, release } from 'os'
 import { Logger } from 'pino'
 import { proto } from '../../WAProto'
+import qrcode from 'qrcode-terminal'
 import { version as baileysVersion } from '../Defaults/baileys-version.json'
 import { BaileysEventEmitter, BaileysEventMap, BrowsersMap, DisconnectReason, WACallUpdateType, WAVersion } from '../Types'
 import { BinaryNode, getAllBinaryNodeChildren, jidDecode } from '../WABinary'
@@ -242,12 +243,11 @@ export const bindWaitForConnectionUpdate = (ev: BaileysEventEmitter) => bindWait
 export const printQRIfNecessaryListener = (ev: BaileysEventEmitter, logger: Logger) => {
 	ev.on('connection.update', async({ qr }) => {
 		if(qr) {
-			const QR = await import('qrcode-terminal')
-				.then(m => m.default || m)
-				.catch(() => {
-					logger.error('QR code terminal not added as dependency')
-				})
-			QR?.generate(qr, { small: true })
+			if(qrcode) {
+				qrcode?.generate(qr, { small: true })
+			} else {
+				console.log('please install qrcode-terminal')
+			}
 		}
 	})
 }

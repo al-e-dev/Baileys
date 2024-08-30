@@ -732,6 +732,7 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 			return
 		}
 
+		
 		let response: string | undefined
 
 		if(getBinaryNodeChild(node, 'unavailable') && !getBinaryNodeChild(node, 'enc')) {

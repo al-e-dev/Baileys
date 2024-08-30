@@ -3,6 +3,7 @@ import { Logger } from 'pino'
 import { WAMediaUploadFunction, WAUrlInfo } from '../Types'
 import { prepareWAMessageMedia } from './messages'
 import { extractImageThumb, getHttpStream } from './messages-media'
+import { getLinkPreview } from 'link-preview-js'
 
 const THUMBNAIL_WIDTH_PX = 192
 
@@ -46,7 +47,6 @@ export const getUrlInfo = async(
 		const retries = 0
 		const maxRetry = 5
 
-		const { getLinkPreview } = await import('link-preview-js')
 		let previewLink = text
 		if(!text.startsWith('https://') && !text.startsWith('http://')) {
 			previewLink = 'https://' + previewLink

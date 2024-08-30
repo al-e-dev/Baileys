@@ -61,12 +61,11 @@ export type SocketConfig = {
     auth: AuthenticationState
     /** manage history processing with this control; by default will sync up everything */
     shouldSyncHistoryMessage: (msg: proto.Message.IHistorySyncNotification) => boolean
-    shouldIgnoreOfflineMessages: boolean
     /** transaction capability options for SignalKeyStore */
     transactionOpts: TransactionCapabilityOptions
     /** marks the client as online whenever the socket successfully connects */
     markOnlineOnConnect: boolean
-
+    
     /** provide a cache to store media, so does not have to be re-uploaded */
     mediaCache?: CacheStore
     /**
@@ -97,7 +96,7 @@ export type SocketConfig = {
      * Messages from that jid will also not be decrypted
      * */
     shouldIgnoreJid: (jid: string) => boolean | undefined
-
+    
     /**
      * Optionally patch the message before sending out
      * */
@@ -105,13 +104,13 @@ export type SocketConfig = {
         msg: proto.IMessage,
         recipientJids: string[],
     ) => Promise<proto.IMessage> | proto.IMessage
-
+    
     /** verify app state MACs */
     appStateMacVerification: {
         patch: boolean
         snapshot: boolean
     }
-
+    
     /** options for axios */
     options: AxiosRequestConfig<{}>
     /**
@@ -120,10 +119,11 @@ export type SocketConfig = {
      * (solves the "this message can take a while" issue) can be retried
      * */
     getMessage: (key: proto.IMessageKey) => Promise<proto.IMessage | undefined>
-
+    
     /** cached group metadata, use to prevent redundant requests to WA & speed up msg sending */
     cachedGroupMetadata: (jid: string) => Promise<GroupMetadata | undefined>
-
+    shouldIgnoreOfflineMessages: boolean | undefined
+    
     makeSignalRepository: (auth: SignalAuthState) => SignalRepository
 
     /** Socket passthrough */

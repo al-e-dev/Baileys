@@ -4,7 +4,7 @@ import { exec } from 'child_process'
 import * as Crypto from 'crypto'
 import { once } from 'events'
 import { createReadStream, createWriteStream, promises as fs, writeFileSync, WriteStream } from 'fs'
-import type { IAudioMetadata } from 'music-metadata'
+import { parseBuffer, parseStream, type IAudioMetadata } from 'music-metadata'
 import { tmpdir } from 'os'
 import { join } from 'path'
 import type { Logger } from 'pino'
@@ -186,19 +186,18 @@ export const mediaMessageSHA256B64 = (message: WAMessageContent) => {
 }
 
 export async function getAudioDuration(buffer: Buffer | string | Readable) {
-	const musicMetadata = await import('music-metadata')
 	let metadata: IAudioMetadata
 	if(Buffer.isBuffer(buffer)) {
-		metadata = await musicMetadata.parseBuffer(buffer, undefined, { duration: true })
+		metadata = await parseBuffer(buffer, undefined, { duration: true })
 	} else if(typeof buffer === 'string') {
 		const rStream = createReadStream(buffer)
 		try {
-			metadata = await musicMetadata.parseStream(rStream, undefined, { duration: true })
+			metadata = await parseStream(rStream, undefined, { duration: true })
 		} finally {
 			rStream.destroy()
 		}
 	} else {
-		metadata = await musicMetadata.parseStream(buffer, undefined, { duration: true })
+		metadata = await parseStream(buffer, undefined, { duration: true })
 	}
 
 	return metadata.format.duration
@@ -653,7 +652,6 @@ export const getWAUploadToServer = (
 	refreshMediaConn: (force: boolean) => Promise<MediaConnInfo>,
 ): WAMediaUploadFunction => {
 	return async(stream, { mediaType, fileEncSha256B64, newsletter, timeoutMs }) => {
-		const { default: axios } = await import('axios')
 		// send a query JSON to obtain the url & auth token to upload our media
 		let uploadInfo = await refreshMediaConn(false)
 
