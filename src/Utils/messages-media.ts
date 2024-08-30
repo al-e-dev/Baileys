@@ -700,7 +700,7 @@ export const getWAUploadToServer = (
 						responseType: 'json',
 						maxBodyLength: Infinity,
 						maxContentLength: Infinity,
-					}
+					} as any
 				)
 				result = body.data
 				if(result?.url || result?.directPath) {
