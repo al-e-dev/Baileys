@@ -666,10 +666,9 @@ export const getWAUploadToServer = (
 			}
 		}
 
-		fileEncSha256B64 = encodeBase64EncodedStringForUpload(fileEncSha256B64)
-
 		const reqBody = Buffer.isBuffer(stream) ? stream : Buffer.concat(chunks)
 		fileEncSha256B64 = encodeBase64EncodedStringForUpload(fileEncSha256B64)
+		
 		let media = MEDIA_PATH_MAP[mediaType]
 		if (newsletter) {
 			media = media?.replace('/mms/', '/newsletter/newsletter-')
