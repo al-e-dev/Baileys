@@ -1,5 +1,5 @@
 import { Boom } from '@hapi/boom'
-import { AxiosRequestConfig } from 'axios'
+import axios, { AxiosRequestConfig } from 'axios'
 import { exec } from 'child_process'
 import * as Crypto from 'crypto'
 import { once } from 'events'
@@ -324,7 +324,6 @@ export async function generateThumbnail(
 }
 
 export const getHttpStream = async(url: string | URL, options: AxiosRequestConfig & { isStream?: true } = {}) => {
-	const { default: axios } = await import('axios')
 	const fetched = await axios.get(url.toString(), { ...options, responseType: 'stream' })
 	return fetched.data as Readable
 }
@@ -358,7 +357,6 @@ export const prepareStream = async(
 
 		const fileLength = buffer.length
 		const fileSha256 = Crypto.createHash('sha256').update(buffer).digest()
-
 		stream?.destroy()
 		logger?.debug('prepare stream data successfully')
 
@@ -386,6 +384,7 @@ export const prepareStream = async(
 		throw error
 	}
 }
+
 
 export const encryptedStream = async(
 	media: WAMediaUpload,
@@ -654,7 +653,6 @@ export const getWAUploadToServer = (
 	refreshMediaConn: (force: boolean) => Promise<MediaConnInfo>,
 ): WAMediaUploadFunction => {
 	return async(stream, { mediaType, fileEncSha256B64, newsletter, timeoutMs }) => {
-		const { default: axios } = await import('axios')
 		// send a query JSON to obtain the url & auth token to upload our media
 		let uploadInfo = await refreshMediaConn(false)
 
@@ -667,6 +665,8 @@ export const getWAUploadToServer = (
 				chunks.push(chunk)
 			}
 		}
+
+		fileEncSha256B64 = encodeBase64EncodedStringForUpload(fileEncSha256B64)
 
 		const reqBody = Buffer.isBuffer(stream) ? stream : Buffer.concat(chunks)
 		fileEncSha256B64 = encodeBase64EncodedStringForUpload(fileEncSha256B64)
@@ -682,13 +682,13 @@ export const getWAUploadToServer = (
 			const url = `https://${hostname}${media}/${fileEncSha256B64}?auth=${auth}&token=${fileEncSha256B64}`
 			let result: any
 			try {
+
 				if(maxContentLengthBytes && reqBody.length > maxContentLengthBytes) {
 					throw new Boom(`Body too large for "${hostname}"`, { statusCode: 413 })
 				}
-
 				const body = await axios.post(
 					url,
-					reqBody,
+					stream,
 					{
 						...options,
 						headers: {
@@ -704,6 +704,7 @@ export const getWAUploadToServer = (
 					}
 				)
 				result = body.data
+
 				if(result?.url || result?.directPath) {
 					urls = {
 						mediaUrl: result.url,

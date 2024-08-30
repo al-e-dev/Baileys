@@ -5,21 +5,23 @@ import type { Logger } from 'pino'
 import type { URL } from 'url'
 import { proto } from '../../WAProto'
 import { AuthenticationState, SignalAuthState, TransactionCapabilityOptions } from './Auth'
+import { GroupMetadata } from './GroupMetadata'
 import { MediaConnInfo } from './Message'
 import { SignalRepository } from './Signal'
+import NodeCache from 'node-cache'
 
 export type WAVersion = [number, number, number]
 export type WABrowserDescription = [string, string, string]
 
 export type CacheStore = {
     /** get a cached key and change the stats */
-    get<T>(key: string): T | undefined
+    get<T>(key: string): Promise<T> | undefined
     /** set a key in the cache */
-    set<T>(key: string, value: T): void
+    set<T>(key: string, value: T): Promise<void> | unknown
     /** delete a key from the cache */
-    del(key: string): void
+    del(key: string): Promise<void> | unknown
     /** flush all data */
-    flushAll(): void
+    flushAll(): Promise<void> | unknown
 }
 
 export type SocketConfig = {
@@ -59,7 +61,6 @@ export type SocketConfig = {
     auth: AuthenticationState
     /** manage history processing with this control; by default will sync up everything */
     shouldSyncHistoryMessage: (msg: proto.Message.IHistorySyncNotification) => boolean
-    /** offline message  **/
     shouldIgnoreOfflineMessages: boolean
     /** transaction capability options for SignalKeyStore */
     transactionOpts: TransactionCapabilityOptions
@@ -76,6 +77,8 @@ export type SocketConfig = {
     userDevicesCache?: CacheStore
     /** cache to store call offers */
     callOfferCache?: CacheStore
+    /** cache to track placeholder resends */
+    placeholderResendCache?: CacheStore
     /** width for link preview images */
     linkPreviewImageThumbnailWidth: number
     /** Should Baileys ask the phone for full history, will be received async */
@@ -117,6 +120,9 @@ export type SocketConfig = {
      * (solves the "this message can take a while" issue) can be retried
      * */
     getMessage: (key: proto.IMessageKey) => Promise<proto.IMessage | undefined>
+
+    /** cached group metadata, use to prevent redundant requests to WA & speed up msg sending */
+    cachedGroupMetadata: (jid: string) => Promise<GroupMetadata | undefined>
 
     makeSignalRepository: (auth: SignalAuthState) => SignalRepository
 

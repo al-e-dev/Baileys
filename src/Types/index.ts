@@ -16,6 +16,14 @@ import { SocketConfig } from './Socket'
 
 export type UserFacingSocketConfig = Partial<SocketConfig> & { auth: AuthenticationState }
 
+export type BrowsersMap = {
+    ubuntu(browser: string): [string, string, string]
+    macOS(browser: string): [string, string, string]
+    baileys(browser: string): [string, string, string]
+    windows(browser: string): [string, string, string]
+    appropriate(browser: string): [string, string, string]
+}
+
 export enum DisconnectReason {
     connectionClosed = 428,
     connectionLost = 408,
@@ -26,7 +34,8 @@ export enum DisconnectReason {
     restartRequired = 515,
     multideviceMismatch = 411,
     forbidden = 403,
-    unavailableService = 503
+    unavailableService = 503,
+    connectionFailure = 405
 }
 
 export type WAInitResponse = {
