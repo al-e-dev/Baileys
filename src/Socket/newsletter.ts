@@ -15,41 +15,64 @@ enum QueryId {
 }
 
 export const makeNewsLetterSocket = (config: SocketConfig) => {
-	const sock = makeGroupsSocket(config)
-	const { query } = sock
+	const { authState, signalRepository, query, generateMessageTag } = sock
+	const encoder = new TextEncoder()
+	
+	const newsletterQuery = async(jid: string | undefined, query_id: QueryId, content?: object) => (
+	    query({
+	        tag: "iq",
+	        attrs: {
+	            id: generateMessageTag(),
+	            type: "get",
+	            xmlns: "w:mex",
+	            to: S_WHATSAPP_NET,
+	        },
+	        content: [{
+	            tag: "query",
+	            attrs: {
+	                query_id
+	            },
+	            content: encoder.encode(JSON.stringify({
+	                variables: {
+	                    newsLetter_id: jid,
+	                    ...content
+	                }
+	            }))
+	        }]
+        })
+    )
+	
+	const newsLetterQuery = async(jid: string, type: "get" | "set", content: BinaryNode[]) => (
+	    query({
+	        tag: "iq",
+	        attrs: {
+	            id: generateMessageTag(),
+	            type,
+	            xmlns: "newsLetter",
+	            to: jid,
+	            
+	        },
+	        content
+	    })
+    )
 
-	const newsletterQuery = async(variables: object | undefined, queryId: string) => (
-		query({
-			tag: 'iq',
-			attrs: {
-				type: 'get',
-				xmlns: 'w:mex',
-				to: S_WHATSAPP_NET,
-			},
-			content: [{
-				tag: 'query',
-				attrs: {
-					'query_id': queryId
-				},
-				content: JSON.stringify({ variables })
-			}]
-		})
-	)
 
 	/**
      *
      * @param code https://whatsapp.com/channel/key
      */
-	const getNewsletterInfo = async(key: string): Promise<NewsLetterMetadata> => {
-		const result = await newsletterQuery({
-			input: {
-				key,
-				type: 'INVITE'
-			},
-			'fetch_viewer_metadata': false,
-			'fetch_full_image': true,
-			'fetch_creation_time': true,
-		}, QueryId.METADATA)
+	const getNewsletterMetadata = async(key: string): Promise<NewsLetterMetadata> => {
+	    const result = await newsletterQuery(undefined, QueryId.METADATA, {
+	        input: {
+	            key,
+	            type: type.toUpperCase(),
+	            view_role: role || "GUEST"
+	            
+	        },
+	        fetch_viewer_metadata: true,
+	        fetch_full_image: true,
+	        fetch_creation_time: true
+	    })
 
 		const node = getBinaryNodeChildString(result, 'result')
 		const json = JSON.parse(node!)
@@ -57,7 +80,7 @@ export const makeNewsLetterSocket = (config: SocketConfig) => {
 			throw new Error('Error while fetch newsletter info ' + json)
 		}
 
-		return extractNewsletterMetadata(json.data?.xwa2_newsletter)
+		return extractNewsLetter(json.data?.xwa2_newsletter)
 	}
 
 	const getSubscribedNewsletters = async(): Promise<NewsLetterMetadata[]> => {
@@ -260,4 +283,29 @@ export const extractNewsletterMetadata = (data: any): NewsLetterMetadata => {
 		mute: data.viewer_metadata?.mute,
 		role: data.viewer_metadata?.role
 	}
+}
+
+export const extractNewsLetter = (node: BinaryNode, isCreate?: boolean) => {
+  const result = getBinaryNodeChild(node, "result")?.content?.toString()
+  const metadataPath = JSON.parse(result!).data[isCreate ? XWAPaths.CREATE: XWAPaths.newsLetter]
+
+  const metadata: newsLetterMetadata = {
+    id: metadataPath.id,
+    state: metadataPath.state.type,
+    creation_time: +metadataPath.thread_metadata.creation_time,
+    name: metadataPath.thread_metadata.name.text,
+    nameTime: +metadataPath.thread_metadata.name.update_time,
+    description: metadataPath.thread_metadata.description.text,
+    descriptionTime: +metadataPath.thread_metadata.description.update_time,
+    invite: metadataPath.thread_metadata.invite,
+    handle: metadataPath.thread_metadata.handle,
+    picture: metadataPath.thread_metadata.picture?.direct_path || null,
+    preview: metadataPath.thread_metadata.preview?.direct_path || null,
+    reaction_codes: metadataPath.thread_metadata.settings.reaction_codes.value,
+    subscribers: +metadataPath.thread_metadata.subscribers_count,
+    verification: metadataPath.thread_metadata.verification,
+    viewer_metadata: metadataPath.viewer_metadata
+  }
+
+  return metadata
 }
