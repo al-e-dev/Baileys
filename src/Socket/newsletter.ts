@@ -1,6 +1,6 @@
-import { ACTION_NEWSLETTER, ACTION_NEWSLETTER_FOLLOWER, MUTE_NEWSLETTER_SETTINGS, NEWSLETTER_METADATA, ROLE_NEWSLETTER, SocketConfig, UPDATE_OPTIONS_NEWSLETTER, WAMediaUpload } from '../Types'
+import { ACTION_NEWSLETTER_FOLLOWER, MUTE_NEWSLETTER_SETTINGS, NEWSLETTER_METADATA, ROLE_NEWSLETTER, SocketConfig, UPDATE_OPTIONS_NEWSLETTER, WAMediaUpload } from '../Types'
 import { generateProfilePicture } from '../Utils'
-import { getBinaryNodeChildString, BinaryNode, getBinaryNodeChild, S_WHATSAPP_NET } from '../WABinary'
+import { getBinaryNodeChildString, BinaryNode, S_WHATSAPP_NET } from '../WABinary'
 import { makeGroupsSocket } from './groups'
 
 enum IDs {

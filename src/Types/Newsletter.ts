@@ -1,4 +1,4 @@
-import { WAMediaUpload } from "baileys"
+import { WAMediaUpload } from "./Message"
 import { proto } from "../../WAProto"
 
 export type ROLE_NEWSLETTER = 'SUBSCRIBER' | 'GUEST' | 'ADMIN' | 'OWNER'
