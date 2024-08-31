@@ -198,7 +198,10 @@ export const decryptMessageNode = (
 							case 'msmsg':
 								const enc = binaryNodeToString(content)
 								msgBuffer = content
-								logger.debug(content, enc)
+								console.log(
+									'Content MSMSG:' + content, 
+									'\nContent ENC:' + enc
+								)
 								break
 						default:
 							throw new Error(`Unknown e2e type: ${e2eType}`)
