@@ -1,11 +1,37 @@
-# Modified Baileys
+# Baileys
 
-Este repositorio no es propiedad mía, simplemente es clonado del repositorio @WhiskeySockets/Baileys
+Este es un repositorio modificado de Baileys, originalmente clonado del repositorio oficial de [@WhiskeySockets/Baileys](https://github.com/WhiskeySockets/Baileys). Si bien no se realizó un fork directo, este repositorio incluye cambios y mejoras que he implementado para personalizar y optimizar su uso.
 
-aparte de tratar de agregar cosas adicionales, recordar que aún soy un desarrollador novato, mi intención es mejorar y ampliar una gama de utilidades dentro de baielys
+## Características de esta versión
 
-Esta Baileys contiene:
+- **Soporte para Newsletter**
+- **Corrección de Errores**
+- **Eliminación de Mensajes Innecesarios**
 
-Soporte Newsletter,
-Corrección de errores,
-Se quitaron mensajes innecesario en la consola ()[Repo libsignal-node]
+## Instalación
+
+Puedes instalar esta versión de Baileys desde npm utilizando el siguiente comando:
+
+```bash
+npm install al-e-dev/Baileys
+```
+
+### Dependencias adicionales
+
+Este repositorio se integra con otro proyecto modificado llamado `libsignal-node`, que también puedes instalar desde npm:
+
+```bash
+npm install al-e-dev/libsignal-node
+```
+
+## Newsletter
+
+
+
+## Contribuciones
+
+Este repositorio está en constante desarrollo, y aunque aún soy un desarrollador en aprendizaje, mi objetivo es seguir mejorándolo. Si tienes sugerencias, correcciones o deseas colaborar, no dudes en hacerlo.
+
+## Agradecimientos
+
+Agradezco al equipo de [@WhiskeySockets](https://github.com/WhiskeySockets) por el trabajo original en Baileys y por brindar una excelente base sobre la cual he podido aprender y construir.
