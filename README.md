@@ -24,8 +24,84 @@ Este repositorio se integra con otro proyecto modificado llamado `libsignal-node
 npm install al-e-dev/libsignal-node
 ```
 
-## Newsletter
+## Uso
 
+### Ejemplo básico de conexión.
+
+```javascript
+import { makeWASocket } from 'baileys'
+
+async function open() {
+    const sock = makeWASocket({
+        printQRInTerminal: true,
+    })
+
+    sock.ev.on('connection.update', (update) => {
+        const { connection, lastDisconnect } = update
+        if (connection === 'close') {
+            const shouldReconnect = (lastDisconnect.error)?.output?.statusCode !== DisconnectReason.loggedOut
+            if (shouldReconnect) {
+                open()
+            }
+        } else if (connection === 'open') {
+            console.log('Connected')
+        }
+    })
+
+    sock.ev.on('messages.upsert', async (m) => {
+        const msg = m.messages[0]
+        if (!msg.key.fromMe && m.type === 'notify') {
+            await sock.sendMessage(msg.key.remoteJid, { text: 'Hello there!' })
+        }
+    })
+}
+
+open()
+```
+
+### Newsletters
+
+#### Actualizar el nombre de una newsletter
+
+```javascript
+await updateNewsletter(jid, { name: 'New Newsletter Name' })
+```
+
+#### Actualizar la descripción de una newsletter
+
+```javascript
+await updateNewsletter(jid, { description: 'New Description' })
+```
+
+#### Actualizar la imagen de una newsletter
+
+```javascript
+await updateNewsletter(jid, { picture: someWAMediaUpload })
+```
+
+#### Eliminar la imagen de una newsletter
+
+```javascript
+await updateNewsletter(jid, { picture: '' })
+```
+
+#### Actualizar la configuración de reacciones de una newsletter a ```all some none```
+
+```javascript
+await updateNewsletter(jid, { reaction: 'all' })
+```
+
+#### Silenciar una newsletter
+
+```javascript
+await muteNewsletter(jid, 'mute')
+```
+
+#### Activar una newsletter
+
+```javascript
+await updateNewsletterMuteStatus(jid, 'un_mute')
+```
 
 
 ## Contribuciones
