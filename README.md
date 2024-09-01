@@ -61,48 +61,78 @@ open()
 
 ### Newsletters
 
-#### Actualizar el nombre de una newsletter
+#### Obtener información de Canales Seguidos
 
 ```javascript
+await getNewsletters()
+```
+
+#### Obtener información de un Canal
+```javascript
+let jid = 'x@newsletter'
+await getNewsletterMetadata(jid)
+```
+
+#### Seguir a un Canal con ```follow un_follow```
+
+```javascript
+let jid = 'x@newsletter'
+await followNewsletter(jid, 'follow')
+```
+
+#### Actualizar el nombre de un Canal
+
+```javascript
+let jid = 'x@newsletter'
 await updateNewsletter(jid, { name: 'New Newsletter Name' })
 ```
 
-#### Actualizar la descripción de una newsletter
-
+#### Actualizar la descripción de un Canal
 ```javascript
+let jid = 'x@newsletter'
 await updateNewsletter(jid, { description: 'New Description' })
 ```
 
-#### Actualizar la imagen de una newsletter
+#### Actualizar la imagen de un Canal
 
 ```javascript
+let jid = 'x@newsletter'
 await updateNewsletter(jid, { picture: someWAMediaUpload })
 ```
 
-#### Eliminar la imagen de una newsletter
+#### Eliminar la imagen de un Canal
 
 ```javascript
+let jid = 'x@newsletter'
 await updateNewsletter(jid, { picture: '' })
 ```
 
-#### Actualizar la configuración de reacciones de una newsletter a ```all some none```
+#### Actualizar la configuración de reacciones de un Canal a ```all some none```
 
 ```javascript
+let jid = 'x@newsletter'
 await updateNewsletter(jid, { reaction: 'all' })
 ```
 
-#### Silenciar una newsletter
+#### Silenciar un Canal
 
 ```javascript
+let jid = 'x@newsletter'
 await muteNewsletter(jid, 'mute')
 ```
 
-#### Activar una newsletter
+#### Activar un Canal
 
 ```javascript
-await updateNewsletterMuteStatus(jid, 'un_mute')
+let jid = 'x@newsletter'
+await muteNewsletter(jid, 'un_mute')
 ```
 
+#### Crear un Canal
+
+```javascript
+// aún no
+```
 
 ## Contribuciones
 
