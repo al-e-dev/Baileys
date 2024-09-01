@@ -8,4 +8,4 @@ Esta Baileys contiene:
 
 Soporte Newsletter,
 Corrección de errores,
-Se quitaron mensajes innecesario en la consola [](Repo libsignal-node)
+Se quitaron mensajes innecesario en la consola ()[Repo libsignal-node]
