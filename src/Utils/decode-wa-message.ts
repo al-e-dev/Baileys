@@ -192,17 +192,13 @@ export const decryptMessageNode = (
 								ciphertext: content
 							})
 							break
-							case 'plaintext':
-								msgBuffer = content
-								break
-							case 'msmsg':
-								const enc = binaryNodeToString(content)
-								msgBuffer = content
-								console.log(
-									'Content MSMSG:' + content, 
-									'\nContent ENC:' + enc
-								)
-								break
+						case 'plaintext':
+							msgBuffer = content
+							break
+						case 'msmsg':
+							const enc = binaryNodeToString(content)
+							msgBuffer = content
+							break
 						default:
 							throw new Error(`Unknown e2e type: ${e2eType}`)
 						}
