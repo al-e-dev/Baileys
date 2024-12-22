@@ -46,6 +46,7 @@ export const makeNewsLetterSocket = (config: SocketConfig) => {
      *
      * @param code https://whatsapp.com/channel/key
      */
+     
 	const getNewsletterMetadata = async(type: "invite" | "jid", key: string, role?: ROLE_NEWSLETTER): Promise<NEWSLETTER_METADATA> => {
 	    const result = await newsletterQuery(undefined, IDs.METADATA, {
 	        input: {
@@ -179,10 +180,10 @@ export const extractNewsLetter = (data: any) => {
     settings: {
 		reaction: data.thread_metadata.settings.reaction_codes.value
 	},
-    subscribers: +data.thread_metadata.subscribers_count,
+    subscribers: data.thread_metadata.subscribers_count,
     verification: data.thread_metadata.verification,
     viewer_metadata: data.viewer_metadata
   }
 
   return metadata
-}
+}()
