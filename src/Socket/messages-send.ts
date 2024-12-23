@@ -561,6 +561,7 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 					},
 					content: binaryNodeContent
 				}
+				
 				// if the participant to send to is explicitly specified (generally retry recp)
 				// ensure the message is only sent to that person
 				// if a retry receipt is sent to everyone -- it'll fail decryption for everyone else who received the msg
@@ -589,21 +590,7 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 				}
 
 				if(additionalNodes && additionalNodes.length > 0) {
-					(stanza.content as BinaryNode[]).push(...additionalNodes)
-				}
-
-				const buttonType = getButtonType(message)
-				if(buttonType) {
-					(stanza.content as BinaryNode[]).push({
-						tag: 'biz',
-						attrs: { },
-						content: [
-							{
-								tag: buttonType,
-								attrs: getButtonArgs(message),
-							}
-						]
-					}),
+					(stanza.content as BinaryNode[]).push(...additionalNodes),
 
 					(stanza.content as BinaryNode[]).push({
 						tag: "biz",
@@ -627,6 +614,20 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 							}
 						]
 					});
+				}
+
+				const buttonType = getButtonType(message)
+				if(buttonType) {
+					(stanza.content as BinaryNode[]).push({
+						tag: 'biz',
+						attrs: { },
+						content: [
+							{
+								tag: buttonType,
+								attrs: getButtonArgs(message),
+							}
+						]
+					})
 
 					logger.debug({ jid }, 'adding business node')
 				}
