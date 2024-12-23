@@ -130,16 +130,8 @@ export const makeNewsLetterSocket = (config: SocketConfig) => {
 			updates: {
 				name: name || undefined,
 				description: description || undefined,
-				picture: picture
-					? typeof picture === 'string'
-						? picture
-						: (await generateProfilePicture(picture)).img.toString('base64')
-					: undefined,
-				settings: reaction
-					? {
-						'reaction_codes': { value: reaction }
-					}
-					: null
+				picture: picture ? typeof picture === 'string' ? picture : (await generateProfilePicture(picture)).img.toString('base64') : undefined,
+				settings: reaction ? { 'reaction_codes': { value: reaction } } : null
 			}
 		})
 	
@@ -180,7 +172,7 @@ export const extractNewsLetter = (data: any) => {
     settings: {
 		reaction: data.thread_metadata.settings.reaction_codes.value
 	},
-    subscribers: data.thread_metadata.subscribers_count,
+    subscribers: +data.thread_metadata.subscribers_count,
     verification: data.thread_metadata.verification,
     viewer_metadata: data.viewer_metadata
   }
