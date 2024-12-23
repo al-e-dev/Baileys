@@ -1,13 +1,13 @@
 
 import { Boom } from '@hapi/boom'
-import NodeCache from 'node-cache'
+import NodeCache from '@cacheable/node-cache'
 import { proto } from '../../WAProto'
 import { DEFAULT_CACHE_TTLS, WA_DEFAULT_EPHEMERAL } from '../Defaults'
 import { AnyMessageContent, MediaConnInfo, MessageReceiptType, MessageRelayOptions, MiscMessageGenerationOptions, SocketConfig, WAMediaUploadFunctionOpts, WAMessageKey } from '../Types'
 import { aggregateMessageKeysNotFromMe, assertMediaContent, bindWaitForEvent, decryptMediaRetryData, encodeSignedDeviceIdentity, encodeWAMessage, encryptMediaRetryRequest, extractDeviceJids, generateMessageIDV2, generateWAMessage, getStatusCodeForMediaRetry, getUrlFromDirectPath, getWAUploadToServer, normalizeMessageContent, parseAndInjectE2ESessions, unixTimestampSeconds } from '../Utils'
 import { getUrlInfo } from '../Utils/link-preview'
 import { areJidsSameUser, BinaryNode, BinaryNodeAttributes, isJidNewsletter, getBinaryNodeChild, getBinaryNodeChildren, isJidGroup, isJidUser, jidDecode, jidEncode, jidNormalizedUser, JidWithDevice, S_WHATSAPP_NET } from '../WABinary'
-import { makeNewsLetterSocket } from './newsletter'
+import { makeNewsletterSocket } from './newsletter'
 import ListType = proto.Message.ListMessage.ListType;
 import { Readable } from 'stream'
 
@@ -20,7 +20,7 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 		patchMessageBeforeSending,
 		cachedGroupMetadata,
 	} = config
-	const sock = makeNewsLetterSocket(config)
+	const sock = makeNewsletterSocket(config)
 	const {
 		ev,
 		authState,
@@ -874,7 +874,7 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 				if (mediaHandle) {
 					additionalAttributes['media_id'] = mediaHandle
 				}
-				if('cachedGroupMetadata' in options) {
+				if (options && typeof options === 'object' && 'cachedGroupMetadata' in options) {
 					console.warn('cachedGroupMetadata in sendMessage are deprecated, now cachedGroupMetadata is part of the socket config.')
 				}
 

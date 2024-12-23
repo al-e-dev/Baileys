@@ -64,6 +64,10 @@ export function decodeMessageNode(
 		msgType = 'group'
 		author = participant
 		chatId = from
+	} else if(isJidNewsletter(from)) {
+		msgType = 'newsletter'
+		author = from
+		chatId = from
 	} else if(isJidBroadcast(from)) {
 		if(!participant) {
 			throw new Boom('No participant in group message')
@@ -86,14 +90,15 @@ export function decodeMessageNode(
 		throw new Boom('Unknown message type', { data: stanza })
 	}
 
-	const fromMe = isJidNewsletter(from) ? !!stanza.attrs?.is_sender : (isLidUser(from) ? isMeLid : isMe)(stanza.attrs.participant || stanza.attrs.from)
+	const fromMe = isJidNewsletter(from) ? !!stanza.attrs?.is_sender || false : (isLidUser(from) ? isMeLid : isMe)(stanza.attrs.participant || stanza.attrs.from)
 	const pushname = stanza?.attrs?.notify
 
 	const key: WAMessageKey = {
 		remoteJid: chatId,
 		fromMe,
 		id: msgId,
-		participant
+		participant,
+		'server_id': stanza.attrs?.server_id
 	}
 
 	const fullMessage: proto.IWebMessageInfo = {

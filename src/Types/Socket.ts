@@ -8,7 +8,6 @@ import { AuthenticationState, SignalAuthState, TransactionCapabilityOptions } fr
 import { GroupMetadata } from './GroupMetadata'
 import { MediaConnInfo } from './Message'
 import { SignalRepository } from './Signal'
-import NodeCache from 'node-cache'
 
 export type WAVersion = [number, number, number]
 export type WABrowserDescription = [string, string, string]

@@ -26,7 +26,7 @@ export const jidDecode = (jid: string | undefined): FullJid | undefined => {
 		return undefined
 	}
 
-	const server = jid!.slice(sepIdx + 1)
+	const server = jid!.slice(sepIdx + 1) as JidServer
 	const userCombined = jid!.slice(0, sepIdx)
 
 	const [userAgent, device] = userCombined.split(':')
@@ -52,11 +52,12 @@ export const isLidUser = (jid: string | undefined) => (jid?.endsWith('@lid'))
 export const isJidBroadcast = (jid: string | undefined) => (jid?.endsWith('@broadcast'))
 /** is the jid a group */
 export const isJidGroup = (jid: string | undefined) => (jid?.endsWith('@g.us'))
+/** is the jid a newsletter */
+export const isJidNewsletter = (jid: string | undefined) => (jid?.endsWith('@newsletter'))
 /** is the jid the status broadcast */
 export const isJidStatusBroadcast = (jid: string) => jid === 'status@broadcast'
-/** is the jid a newsletter */
-export const isJidNewsletter = (jid: string | undefined) => (jid?.endsWith('newsletter'))
 
+/** is the jid a chat */
 export const jidNormalizedUser = (jid: string | undefined) => {
 	const result = jidDecode(jid)
 	if(!result) {

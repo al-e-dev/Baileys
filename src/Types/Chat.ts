@@ -1,5 +1,6 @@
 import type { proto } from '../../WAProto'
 import type { AccountSettings } from './Auth'
+import { ContactAction } from './Contact'
 import type { BufferedEventData } from './Events'
 import type { ChatLabelAssociationActionBody } from './LabelAssociation'
 import type { MessageLabelAssociationActionBody } from './LabelAssociation'
@@ -15,6 +16,8 @@ export type WAPrivacyGroupAddValue = 'all' | 'contacts' | 'contact_blacklist'
 export type WAReadReceiptsValue = 'all' | 'none'
 
 export type WAPrivacyCallValue = 'all' | 'known'
+
+export type WAPrivacyMessagesValue = 'all' | 'contacts'
 
 /** set of statuses visible to other people; see updatePresence() in WhatsAppWeb.Send */
 export type WAPresence = 'unavailable' | 'available' | 'composing' | 'recording' | 'paused'
@@ -90,6 +93,7 @@ export type ChatModification =
         lastMessages: LastMessageList
     }
     | { delete: true, lastMessages: LastMessageList }
+    | { contact: ContactAction | null }
     // Label assosiation
     | { addChatLabel: ChatLabelAssociationActionBody }
     | { removeChatLabel: ChatLabelAssociationActionBody }

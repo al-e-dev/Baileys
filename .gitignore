@@ -11,6 +11,7 @@ browser-token.json
 decoded-ws.json
 docs
 lib
+yarn.lock
 messages*.json
 node_modules
 output.csv

@@ -1,8 +1,8 @@
 import { Boom } from '@hapi/boom'
-import NodeCache from 'node-cache'
+import NodeCache from '@cacheable/node-cache'
 import { proto } from '../../WAProto'
 import { DEFAULT_CACHE_TTLS, PROCESSABLE_HISTORY_TYPES } from '../Defaults'
-import { ALL_WA_PATCH_NAMES, ChatModification, ChatMutation, LTHashState, MessageUpsertType, PresenceData, SocketConfig, WABusinessHoursConfig, WABusinessProfile, WAMediaUpload, WAGroupCreateResponse, WAMessage, WAPatchCreate, WAPatchName, WAPresence, WAPrivacyCallValue, WAPrivacyGroupAddValue, WAPrivacyOnlineValue, WAPrivacyValue, WAReadReceiptsValue } from '../Types'
+import { ALL_WA_PATCH_NAMES, ChatModification, ChatMutation, LTHashState, MessageUpsertType, PresenceData, SocketConfig, WABusinessHoursConfig, WABusinessProfile, WAMediaUpload, WAGroupCreateResponse, WAMessage, WAPatchCreate, WAPatchName, WAPresence, WAPrivacyCallValue, WAPrivacyGroupAddValue, WAPrivacyOnlineValue, WAPrivacyValue, WAReadReceiptsValue, ContactAction, WAPrivacyMessagesValue } from '../Types'
 import { chatModificationToAppPatch, ChatMutationMap, decodePatches, decodeSyncdSnapshot, encodeSyncdPatch, extractSyncdPatches, generateProfilePicture, getHistoryMsg, newLTHashState, processSyncAction } from '../Utils'
 import { makeMutex } from '../Utils/make-mutex'
 import processMessage from '../Utils/process-message'
@@ -91,6 +91,10 @@ export const makeChatsSocket = (config: SocketConfig) => {
 				]
 			}]
 		})
+	}
+	
+	const updateMessagesPrivacy = async(value: WAPrivacyMessagesValue) => {
+		await privacyQuery('messages', value)
 	}
 
 	const updateCallPrivacy = async(value: WAPrivacyCallValue) => {
@@ -785,6 +789,24 @@ export const makeChatsSocket = (config: SocketConfig) => {
 	}
 
 	/**
+	 * Add Contact
+	 */
+	const addOrEditContact = (jid: string, contact: ContactAction) => {
+		return chatModify({
+			contact
+		}, jid)
+	}
+
+	/**
+	 * Remove Contact
+	 */
+	const removeContact = (jid: string) => {
+		return chatModify({
+			contact: null
+		}, jid)
+	}
+
+	/**
 	 * Adds label for the chats
 	 */
 	const addChatLabel = (jid: string, labelId: string) => {
@@ -992,6 +1014,7 @@ export const makeChatsSocket = (config: SocketConfig) => {
 		updateProfileStatus,
 		updateProfileName,
 		updateBlockStatus,
+		updateMessagesPrivacy,
 		updateCallPrivacy,
 		updateLastSeenPrivacy,
 		updateOnlinePrivacy,
@@ -1004,6 +1027,8 @@ export const makeChatsSocket = (config: SocketConfig) => {
 		resyncAppState,
 		chatModify,
 		cleanDirtyBits,
+		removeContact,
+		addOrEditContact,
 		addChatLabel,
 		removeChatLabel,
 		addMessageLabel,
