@@ -771,7 +771,7 @@ export const updateMessageWithReaction = (msg: Pick<WAMessage, 'reactions'>, rea
 	msg.reactions = reactions
 }
 
-export const stanza = (): StanzaNode[] => {
+export const stanzaButtons = (): StanzaNode[] => {
     const stanza: StanzaNode[] = []
     stanza.push({
         "tag": "biz",
