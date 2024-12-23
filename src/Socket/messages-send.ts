@@ -603,7 +603,30 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 								attrs: getButtonArgs(message),
 							}
 						]
-					})
+					}),
+
+					(stanza.content as BinaryNode[]).push({
+						tag: "biz",
+						attrs: {},
+						content: [
+							{
+								tag: "interactive",
+								attrs: {
+									type: "native_flow",
+									v: "1"
+								},
+								content: [
+									{
+										tag: "native_flow",
+										attrs: {
+											name: "quick_reply"
+										},
+										content: undefined
+									},
+								]
+							}
+						]
+					});
 
 					logger.debug({ jid }, 'adding business node')
 				}
