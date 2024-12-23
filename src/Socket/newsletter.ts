@@ -186,4 +186,4 @@ export const extractNewsLetter = (data: any) => {
   }
 
   return metadata
-}()
+}
