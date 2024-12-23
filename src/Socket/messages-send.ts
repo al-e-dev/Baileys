@@ -561,31 +561,6 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 					},
 					content: binaryNodeContent
 				}
-
-				if (message.viewOnceMessage && message.viewOnceMessage.message?.interactiveMessage) {
-					(stanza.content as BinaryNode[]).push({
-						tag: "biz",
-						attrs: {},
-						content: [
-							{
-								tag: "interactive",
-								attrs: {
-									type: "native_flow",
-									v: "1"
-								},
-								content: [
-									{
-										tag: "native_flow",
-										attrs: {
-											name: "quick_reply"
-										},
-										content: undefined
-									},
-								]
-							}
-						]
-					})
-				}
 				
 				// if the participant to send to is explicitly specified (generally retry recp)
 				// ensure the message is only sent to that person
