@@ -48,6 +48,12 @@ export interface WAUrlInfo {
     originalThumbnailUrl?: string
 }
 
+export interface StanzaNode {
+    tag: string;
+    attrs?: Record<string, any>;
+    content?: StanzaNode[];
+}
+
 // types to generate WA messages
 type Mentionable = {
     /** list of jids that are mentioned in the accompanying text */
