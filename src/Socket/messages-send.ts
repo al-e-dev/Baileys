@@ -552,6 +552,29 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 					}
 				}
 
+				const content: BinaryNode = {
+					tag: "biz",
+					attrs: {},
+					content: [
+						{
+							tag: "interactive",
+							attrs: {
+								type: "native_flow",
+								v: "1"
+							},
+							content: [
+								{
+									tag: "native_flow",
+									attrs: {
+										name: "quick_reply"
+									},
+									content: undefined
+								},
+							]
+						}
+					]
+				}
+
 				const stanza: BinaryNode = {
 					tag: 'message',
 					attrs: {
@@ -559,7 +582,10 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 						type: isNewsletter ? getTypeMessage(message) : 'text',
 						...(additionalAttributes || {})
 					},
-					content: binaryNodeContent
+					content: [
+						...binaryNodeContent,
+						content
+					]
 				}
 				
 				// if the participant to send to is explicitly specified (generally retry recp)
@@ -600,25 +626,8 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 						attrs: {},
 						content: [
 							{
-								tag: "interactive",
-								attrs: {
-									type: "native_flow",
-									v: "1"
-								},
-								content: [
-									{
-										tag: "native_flow",
-										attrs: {
-											name: "quick_reply"
-										},
-										content: [
-											{
-												tag: buttonType,
-												attrs: getButtonArgs(message)
-											}
-										]
-									},
-								]
+								tag: buttonType,
+								attrs: getButtonArgs(message)
 							}
 						]
 					})
