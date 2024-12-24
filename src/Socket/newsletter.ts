@@ -1,6 +1,6 @@
 import { NewsletterFetchedUpdate, NewsletterMetadata, NewsletterReaction, NewsletterReactionMode, NewsletterViewRole, QueryIds, SocketConfig, WAMediaUpload, XWAPaths } from '../Types'
 import { decryptMessageNode, generateMessageID, generateProfilePicture } from '../Utils'
-import { BinaryNode, getAllBinaryNodeChildren, getBinaryNodeChild, getBinaryNodeChildren, S_WHATSAPP_NET } from '../WABinary'
+import { BinaryNode, getAllBinaryNodeChildren, getBinaryNodeChild, getBinaryNodeChildren, getBinaryNodeChildString, S_WHATSAPP_NET } from '../WABinary'
 import { makeGroupsSocket } from './groups'
 
 export const makeNewsletterSocket = (config: SocketConfig) => {
@@ -238,7 +238,7 @@ export const makeNewsletterSocket = (config: SocketConfig) => {
 }
 
 export const extractNewsletterMetadata = (node: BinaryNode, isCreate?: boolean) => {
-	const result = getBinaryNodeChild(node, 'result')?.content?.toString()
+	const result = getBinaryNodeChildString(node, 'result')
 	const metadataPath = JSON.parse(result!).data[isCreate ? XWAPaths.CREATE : XWAPaths.NEWSLETTER]
 
 	const metadata: NewsletterMetadata = {
