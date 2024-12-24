@@ -168,16 +168,15 @@ export const makeNewsletterSocket = (config: SocketConfig) => {
 				input: {
 					key,
 					type: type.toUpperCase(),
-					'view_role': role || 'GUEST'
+					view_role: role || 'GUEST'
 				},
-				'fetch_viewer_metadata': true,
-				'fetch_full_image': true,
-				'fetch_creation_time': true
+				fetch_viewer_metadata: true,
+				fetch_full_image: true,
+				fetch_creation_time: true
 			})
 
 			return extractNewsletterMetadata(result)
 		},
-
 		newsletterAdminCount: async(jid: string) => {
 			const result = await newsletterWMexQuery(jid, QueryIds.ADMIN_COUNT)
 
