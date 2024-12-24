@@ -1,6 +1,7 @@
 import { proto } from '../../WAProto'
+import { WAMediaUpload } from './Message'
 
-export type NewsletterReactionMode = 'ALL' | 'BASIC' | 'NONE'
+export type NewsletterReactionMode = 'ALL' | 'BASIC' | 'NONE' | 'BLOCKLIST'
 
 export type NewsletterState = 'ACTIVE' | 'GEOSUSPENDED' | 'SUSPENDED'
 
@@ -9,6 +10,10 @@ export type NewsletterVerification = 'VERIFIED' | 'UNVERIFIED'
 export type NewsletterMute = 'ON' | 'OFF' | 'UNDEFINED'
 
 export type NewsletterViewRole = 'ADMIN' | 'GUEST' | 'OWNER' | 'SUBSCRIBER'
+
+export type NewsletterSettingsFollow = "follow" | "un_follow"
+export type NewsletterSettingsMute = 'mute' | 'un_mute';
+export type NewsletterActions = "promote" | "demote"
 
 export type NewsletterViewerMetadata = {
     mute: NewsletterMute
@@ -25,11 +30,11 @@ export type NewsletterMetadata = {
     /**name of newsletter */
     name: string
     /**timestamp of last name modification of newsletter */
-    nameTime: number
+    name_time: number
     /**description of newsletter */
     description: string
     /**timestamp of last description modification of newsletter */
-    descriptionTime: number
+    description_time: number
     /**invite code of newsletter */
     invite: string
     /**i dont know */
@@ -38,8 +43,11 @@ export type NewsletterMetadata = {
     picture: string | null
     /**direct path of picture preview (lower quality) */
     preview: string | null
-    /**reaction mode of newsletter */
-    reaction_codes?: NewsletterReactionMode
+    /**Settings code */
+    settings: { 
+        /**reaction mode of newsletter */
+        reaction?: NewsletterReactionMode
+    }
     /**subscribers count of newsletter */
     subscribers: number
     /**verification state of newsletter */
@@ -68,6 +76,13 @@ export type NewsletterFetchedUpdate = {
     message?: proto.IWebMessageInfo
 }
 
+export type NewsletterUpdate = {
+    name?: string
+    description?: string
+    picture?: WAMediaUpload | string
+    reaction?: NewsletterReactionMode
+};
+
 export enum MexOperations {
     PROMOTE = 'NotificationNewsletterAdminPromote',
     DEMOTE = 'NotificationNewsletterAdminDemote',
@@ -86,6 +101,7 @@ export enum XWAPaths {
 export enum QueryIds {
     JOB_MUTATION = '7150902998257522',
     METADATA = '6620195908089573',
+    GETSUBSCRIBED = '6388546374527196',
     UNFOLLOW = '7238632346214362',
     FOLLOW = '7871414976211147',
     UNMUTE = '7337137176362961',
