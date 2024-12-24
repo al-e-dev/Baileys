@@ -774,33 +774,6 @@ export const updateMessageWithReaction = (msg: Pick<WAMessage, 'reactions'>, rea
 	msg.reactions = reactions
 }
 
-export const stanzaButtons = (): StanzaNode[] => {
-    const stanza: StanzaNode[] = []
-    stanza.push({
-        "tag": "biz",
-        "attrs": {},
-        "content": [
-            {
-                "tag": "interactive",
-                "attrs": {
-                    "type": "native_flow",
-                    "v": "1"
-                },
-                "content": [
-                    {
-                        "tag": "native_flow",
-                        "attrs": {
-                            "name": "quick_reply"
-                        },
-                        "content": undefined
-                    },
-                ]
-            }
-        ]
-    })
-    return stanza
-}
-
 /** Update the message with a new poll update */
 export const updateMessageWithPollUpdate = (
 	msg: Pick<WAMessage, 'pollUpdates'>,
