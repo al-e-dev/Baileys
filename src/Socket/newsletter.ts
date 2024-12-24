@@ -24,28 +24,26 @@ export const makeNewsletterSocket = (config: SocketConfig) => {
 
 	const newsletterWMexQuery = async(jid: string | undefined, queryId: QueryIds, content?: object) => (
 		query({
-			tag: 'iq',
-			attrs: {
-				id: generateMessageTag(),
-				type: 'get',
-				xmlns: 'w:mex',
-				to: S_WHATSAPP_NET,
-			},
-			content: [
-				{
-					tag: 'query',
-					attrs: { 'query_id': queryId },
-					content: encoder.encode(
-						JSON.stringify({
-							variables: {
-								'newsletter_id': jid,
-								...content
-							}
-						})
-					)
-				}
-			]
-		})
+	        tag: "iq",
+	        attrs: {
+	            id: generateMessageTag(),
+	            type: "get",
+	            xmlns: "w:mex",
+	            to: S_WHATSAPP_NET,
+	        },
+	        content: [{
+	            tag: "query",
+	            attrs: {
+	                queryId
+	            },
+	            content: encoder.encode(JSON.stringify({
+	                variables: {
+	                    newsLetter_id: jid,
+	                    ...content
+	                }
+	            }))
+	        }]
+        })
 	)
 
 	const parseFetchedUpdates = async(node: BinaryNode, type: 'messages' | 'updates') => {
