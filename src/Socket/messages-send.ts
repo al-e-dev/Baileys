@@ -596,12 +596,24 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 				const buttonType = getButtonType(message)
 				if(buttonType) {
 					(stanza.content as BinaryNode[]).push({
-						tag: 'biz',
-						attrs: { },
-						content: [
+						"tag": "biz",
+						"attrs": {},
+						"content": [
 							{
-								tag: buttonType,
-								attrs: getButtonArgs(message),
+								"tag": "interactive",
+								"attrs": {
+									"type": "native_flow",
+									"v": "1"
+								},
+								"content": [
+									{
+										"tag": "native_flow",
+										"attrs": {
+											"name": "quick_reply"
+										},
+										"content": undefined
+									},
+								]
 							}
 						]
 					})
