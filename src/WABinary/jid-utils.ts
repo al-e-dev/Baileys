@@ -12,7 +12,7 @@ export type JidWithDevice = {
 }
 
 export type FullJid = JidWithDevice & {
-	server: JidServer | string
+	server: JidServer
 	domainType?: number
 }
 
@@ -33,7 +33,7 @@ export const jidDecode = (jid: string | undefined): FullJid | undefined => {
 	const user = userAgent.split('_')[0]
 
 	return {
-		server,
+		server: server as JidServer,
 		user,
 		domainType: server === 'lid' ? 1 : 0,
 		device: device ? +device : undefined

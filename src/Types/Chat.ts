@@ -1,7 +1,9 @@
+import { WAMessageKey } from 'baileys'
 import type { proto } from '../../WAProto'
 import type { AccountSettings } from './Auth'
 import { ContactAction } from './Contact'
 import type { BufferedEventData } from './Events'
+import { LabelActionBody } from './Label'
 import type { ChatLabelAssociationActionBody } from './LabelAssociation'
 import type { MessageLabelAssociationActionBody } from './LabelAssociation'
 import type { MinimalMessage } from './Message'
@@ -80,7 +82,9 @@ export type ChatModification =
         mute: number | null
     }
     | {
-        clear: 'all' | { messages: { id: string, fromMe?: boolean, timestamp: number }[] }
+        clear: boolean
+    } | {
+        deleteForMe: { deleteMedia: boolean, key: WAMessageKey, timestamp: number }
     }
     | {
         star: {
@@ -95,6 +99,7 @@ export type ChatModification =
     | { delete: true, lastMessages: LastMessageList }
     | { contact: ContactAction | null }
     // Label assosiation
+    | { addLabel: LabelActionBody }
     | { addChatLabel: ChatLabelAssociationActionBody }
     | { removeChatLabel: ChatLabelAssociationActionBody }
     | { addMessageLabel: MessageLabelAssociationActionBody }
