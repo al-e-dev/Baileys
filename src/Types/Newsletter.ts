@@ -76,12 +76,12 @@ export type NewsletterFetchedUpdate = {
     message?: proto.IWebMessageInfo
 }
 
-export type NewsletterUpdate = {
+export interface NewsletterUpdateParams {
     name?: string
     description?: string
     picture?: WAMediaUpload | string
     reaction?: NewsletterReactionMode
-};
+}
 
 export enum MexOperations {
     PROMOTE = 'NotificationNewsletterAdminPromote',
