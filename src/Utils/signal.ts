@@ -73,7 +73,7 @@ export const parseAndInjectE2ESessions = async(
 	const extractKey = (key: BinaryNode) => (
 		key ? ({
 			keyId: getBinaryNodeChildUInt(key, 'id', 3)!,
-			publicKey: generateSignalPubKey(getBinaryNodeChildBuffer(key, 'value')!)!,
+			publicKey: generateSignalPubKey(getBinaryNodeChildBuffer(key, 'value')!),
 			signature: getBinaryNodeChildBuffer(key, 'signature')!,
 		}) : undefined
 	)

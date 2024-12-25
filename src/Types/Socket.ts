@@ -124,7 +124,4 @@ export type SocketConfig = {
     shouldIgnoreOfflineMessages: boolean | undefined
     
     makeSignalRepository: (auth: SignalAuthState) => SignalRepository
-
-    /** Socket passthrough */
-    socket?: any
 }

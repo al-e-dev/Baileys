@@ -1,18 +1,7 @@
-import { NewsletterFetchedUpdate, NewsletterMetadata, NewsletterMute, NewsletterSettingsFollow, NewsletterSettingsMute, NewsletterUpdate, NewsletterViewRole, QueryIds, SocketConfig, WAMediaUpload } from '../Types'
+import { NewsletterFetchedUpdate, NewsletterMetadata, NewsletterMute, NewsletterSettingsFollow, NewsletterSettingsMute, NewsletterUpdateParams, NewsletterViewRole, QueryIds, SocketConfig, WAMediaUpload } from '../Types'
 import { generateProfilePicture } from '../Utils'
 import { getBinaryNodeChildString, BinaryNode, S_WHATSAPP_NET } from '../WABinary'
 import { makeGroupsSocket } from './groups'
-
-enum IDs {
-	METADATA = '6620195908089573',
-	GETSUBSCRIBED = '6388546374527196',
-	CREATE = '6996806640408138',
-	UNMUTE = '7337137176362961',
-	MUTE = '25151904754424642',
-	FOLLOW = '7871414976211147',
-	UNFOLLOW = '7238632346214362',
-	UPDATE = '7150902998257522'
-}
 
 export const makeNewsletterSocket = (config: SocketConfig) => {
 	const sock = makeGroupsSocket(config)
@@ -122,7 +111,7 @@ export const makeNewsletterSocket = (config: SocketConfig) => {
 		return json
 	}
 
-	const updateNewsletter = async(jid: string, updates: NewsletterUpdate) => {
+	const updateNewsletter = async(jid: string, updates: NewsletterUpdateParams) => {
 		const { name, description, picture, reaction } = updates
 	
 		const result = await newsletterQuery(undefined, QueryIds.JOB_MUTATION, {

@@ -12,7 +12,7 @@ import { Readable, Transform } from 'stream'
 import { URL } from 'url'
 import { proto } from '../../WAProto'
 import { DEFAULT_ORIGIN, MEDIA_HKDF_KEY_MAPPING, MEDIA_PATH_MAP } from '../Defaults'
-import { BaileysEventMap, DownloadableMessage, MediaConnInfo, MediaDecryptionKeyInfo, MediaType, MessageType, SocketConfig, WAGenericMediaMessage, WAMediaUpload, WAMediaUploadFunction, WAMessageContent } from '../Types'
+import { BaileysEventMap, DownloadableMessage, MediaConnInfo, MediaDecryptionKeyInfo, MediaType, MessageType, SocketConfig, WAGenericMediaMessage, WAMediaPayloadURL, WAMediaUpload, WAMediaUploadFunction, WAMessageContent } from '../Types'
 import { BinaryNode, getBinaryNodeChild, getBinaryNodeChildBuffer, jidNormalizedUser } from '../WABinary'
 import { aesDecryptGCM, aesEncryptGCM, hkdf } from './crypto'
 import { generateMessageID } from './generics'
@@ -67,9 +67,9 @@ export function getMediaKeys(buffer: Uint8Array | string | null | undefined, med
 	// expand using HKDF to 112 bytes, also pass in the relevant app info
 	const expandedMediaKey = hkdf(buffer, 112, { info: hkdfInfoKey(mediaType) })
 	return {
-		iv: expandedMediaKey.slice(0, 16),
-		cipherKey: expandedMediaKey.slice(16, 48),
-		macKey: expandedMediaKey.slice(48, 80),
+		iv: expandedMediaKey.subarray(0, 16),
+		cipherKey: expandedMediaKey.subarray(16, 48),
+		macKey: expandedMediaKey.subarray(48, 80),
 	}
 }
 
@@ -79,7 +79,7 @@ const extractVideoThumb = async(
 	destPath: string,
 	time: string,
 	size: { width: number, height: number },
-) => new Promise((resolve, reject) => {
+) => new Promise<void>((resolve, reject) => {
     	const cmd = `ffmpeg -ss ${time} -i ${path} -y -vf scale=${size.width}:-1 -vframes 1 -f image2 ${destPath}`
     	exec(cmd, (err) => {
     		if(err) {
@@ -88,7 +88,7 @@ const extractVideoThumb = async(
 			resolve()
 		}
     	})
-}) as Promise<void>
+})
 
 export const extractImageThumb = async(bufferOrFilePath: Readable | Buffer | string, width = 32) => {
 	if(bufferOrFilePath instanceof Readable) {
@@ -97,7 +97,7 @@ export const extractImageThumb = async(bufferOrFilePath: Readable | Buffer | str
 
 	const lib = await getImageProcessingLibrary()
 	if('sharp' in lib && typeof lib.sharp?.default === 'function') {
-		const img = lib.sharp!.default(bufferOrFilePath)
+		const img = lib.sharp.default(bufferOrFilePath)
 		const dimensions = await img.metadata()
 
 		const buffer = await img
@@ -114,7 +114,7 @@ export const extractImageThumb = async(bufferOrFilePath: Readable | Buffer | str
 	} else if('jimp' in lib && typeof lib.jimp?.read === 'function') {
 		const { read, MIME_JPEG, RESIZE_BILINEAR, AUTO } = lib.jimp
 
-		const jimp = await read(bufferOrFilePath as any)
+		const jimp = await read(bufferOrFilePath as string)
 		const dimensions = {
 			width: jimp.getWidth(),
 			height: jimp.getHeight()
@@ -154,7 +154,7 @@ export const generateProfilePicture = async(mediaUpload: WAMediaUpload) => {
 	const lib = await getImageProcessingLibrary()
 	let img: Promise<Buffer>
 	if('sharp' in lib && typeof lib.sharp?.default === 'function') {
-		img = lib.sharp!.default(bufferOrFilePath)
+		img = lib.sharp.default(bufferOrFilePath)
 			.resize(640, 640)
 			.jpeg({
 				quality: 50,
@@ -162,7 +162,7 @@ export const generateProfilePicture = async(mediaUpload: WAMediaUpload) => {
 			.toBuffer()
 	} else if('jimp' in lib && typeof lib.jimp?.read === 'function') {
 		const { read, MIME_JPEG, RESIZE_BILINEAR } = lib.jimp
-		const jimp = await read(bufferOrFilePath as any)
+		const jimp = await read(bufferOrFilePath as string)
 		const min = Math.min(jimp.getWidth(), jimp.getHeight())
 		const cropped = jimp.crop(0, 0, min, min)
 
@@ -402,7 +402,7 @@ export const encryptedStream = async(
 	let writeStream: WriteStream | undefined
 	let didSaveToTmpPath = false
 	if(type === 'file') {
-		bodyPath = (media as any).url
+		bodyPath = (media as WAMediaPayloadURL).url.toString()
 	} else if(saveOriginalFileIfRequired) {
 		bodyPath = join(getTmpFilesDirectory(), mediaType + generateMessageID())
 		writeStream = createWriteStream(bodyPath)
@@ -433,10 +433,8 @@ export const encryptedStream = async(
 			}
 
 			sha256Plain = sha256Plain.update(data)
-			if(writeStream) {
-				if(!writeStream.write(data)) {
-					await once(writeStream, 'drain')
-				}
+			if(writeStream && !writeStream.write(data)) {
+				await once(writeStream, 'drain')
 			}
 
 			onChunk(aes.update(data))
@@ -444,7 +442,7 @@ export const encryptedStream = async(
 
 		onChunk(aes.final())
 
-		const mac = hmac.digest().slice(0, 10)
+		const mac = hmac.digest().subarray(0, 10)
 		sha256Enc = sha256Enc.update(mac)
 
 		const fileSha256 = sha256Plain.digest()
@@ -506,7 +504,7 @@ const toSmallestChunkSize = (num: number) => {
 export type MediaDownloadOptions = {
     startByte?: number
     endByte?: number
-	options?: AxiosRequestConfig<any>
+	options?: AxiosRequestConfig<{}>
 }
 
 export const getUrlFromDirectPath = (directPath: string) => `https://${DEF_HOST}${directPath}`
@@ -552,9 +550,9 @@ export const downloadEncryptedContent = async(
 		Origin: DEFAULT_ORIGIN,
 	}
 	if(startChunk || endChunk) {
-		headers!.Range = `bytes=${startChunk}-`
+		headers.Range = `bytes=${startChunk}-`
 		if(endChunk) {
-			headers!.Range += endChunk
+			headers.Range += endChunk
 		}
 	}
 
@@ -578,7 +576,7 @@ export const downloadEncryptedContent = async(
 			const start = bytesFetched >= startByte! ? undefined : Math.max(startByte! - bytesFetched, 0)
 			const end = bytesFetched + bytes.length < endByte! ? undefined : Math.max(endByte! - bytesFetched, 0)
 
-			push(bytes.slice(start, end))
+			push(bytes.subarray(start, end))
 
 			bytesFetched += bytes.length
 		} else {
@@ -591,14 +589,14 @@ export const downloadEncryptedContent = async(
 			let data = Buffer.concat([remainingBytes, chunk])
 
 			const decryptLength = toSmallestChunkSize(data.length)
-			remainingBytes = data.slice(decryptLength)
-			data = data.slice(0, decryptLength)
+			remainingBytes = data.subarray(decryptLength)
+			data = data.subarray(0, decryptLength)
 
 			if(!aes) {
 				let ivValue = iv
 				if(firstBlockIsIV) {
-					ivValue = data.slice(0, AES_CHUNK_SIZE)
-					data = data.slice(AES_CHUNK_SIZE)
+					ivValue = data.subarray(0, AES_CHUNK_SIZE)
+					data = data.subarray(AES_CHUNK_SIZE)
 				}
 
 				aes = Crypto.createDecipheriv('aes-256-cbc', cipherKey, ivValue)
@@ -838,8 +836,3 @@ const MEDIA_RETRY_STATUS_MAP = {
 	[proto.MediaRetryNotification.ResultType.NOT_FOUND]: 404,
 	[proto.MediaRetryNotification.ResultType.GENERAL_ERROR]: 418,
 } as const
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function __importStar(arg0: any): any {
-	throw new Error('Function not implemented.')
-}

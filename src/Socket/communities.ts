@@ -50,18 +50,18 @@ export const makeCommunitiesSocket = (config: SocketConfig) => {
 				}
 			]
 		})
-		const data: { [_: string]: GroupMetadata } = { }
+		const data: { [key: string]: GroupMetadata } = {}
 		const communitiesChild = getBinaryNodeChild(result, 'communities')
-		if(communitiesChild) {
+		if (communitiesChild) {
 			const communities = getBinaryNodeChildren(communitiesChild, 'community')
-			for(const communityNode of communities) {
-				const meta = extractCommunityMetadata({
+			await Promise.all(communities.map(async (communityNode) => {
+				const meta = await extractCommunityMetadata({
 					tag: 'result',
-					attrs: { },
+					attrs: {},
 					content: [communityNode]
 				})
 				data[meta.id] = meta
-			}
+			}))
 		}
 
 		sock.ev.emit('groups.update', Object.values(data))
