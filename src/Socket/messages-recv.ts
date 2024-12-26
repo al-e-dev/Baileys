@@ -1,4 +1,4 @@
-
+import Long from 'long'
 import { Boom } from '@hapi/boom'
 import { randomBytes } from 'crypto'
 import NodeCache from '@cacheable/node-cache'
@@ -118,7 +118,7 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 		logger.debug({ recv: { tag, attrs }, sent: stanza.attrs }, 'sent ack')
 		await sendNode(stanza)
 	}
-
+	
 	const rejectCall = async(callId: string, callFrom: string) => {
 		const stanza: BinaryNode = ({
 			tag: 'call',
@@ -471,7 +471,7 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 			const delPicture = getBinaryNodeChild(node, 'delete')
 
 			ev.emit('contacts.update', [{
-				id: jidNormalizedUser(node?.attrs?.from) || ((setPicture || delPicture)?.attrs?.hash) || '',
+				id: from || ((setPicture || delPicture)?.attrs?.hash) || '',
 				imgUrl: setPicture ? 'changed' : 'removed'
 			}])
 
