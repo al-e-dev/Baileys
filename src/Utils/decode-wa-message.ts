@@ -3,7 +3,7 @@ import { Logger } from 'pino'
 import { proto } from '../../WAProto'
 import { SignalRepository, WAMessageKey } from '../Types'
 import { areJidsSameUser, BinaryNode, getBinaryNodeChild, binaryNodeToString, isJidBroadcast, isJidGroup, isJidNewsletter, isJidStatusBroadcast, isJidUser, isLidUser } from '../WABinary'
-import { unpadRandomMax16 } from './generics'
+import { BufferJSON, unpadRandomMax16 } from './generics'
 
 export const NO_MESSAGE_FOUND_ERROR_TEXT = 'Message absent from node'
 
@@ -231,7 +231,7 @@ export const decryptMessageNode = (
 			// if nothing was found to decrypt
 			if(!decryptables) {
 				fullMessage.messageStubType = proto.WebMessageInfo.StubType.CIPHERTEXT
-				fullMessage.messageStubParameters = [NO_MESSAGE_FOUND_ERROR_TEXT]
+				fullMessage.messageStubParameters = [NO_MESSAGE_FOUND_ERROR_TEXT, JSON.stringify(stanza, BufferJSON.replacer)]
 			}
 		}
 	}
