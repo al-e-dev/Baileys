@@ -795,22 +795,6 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 		
 		let response: string | undefined
 
-		if(getBinaryNodeChild(node, 'unavailable') && !getBinaryNodeChild(node, 'enc')) {
-			await sendMessageAck(node)
-			const { key } = decodeMessageNode(node, authState.creds.me!.id, authState.creds.me!.lid || '').fullMessage
-			response = await requestPlaceholderResend(key)
-			if(response === 'RESOLVED') {
-				return
-			}
-
-			logger.debug('received unavailable message, acked and requested resend from phone')
-		} else {
-			if(placeholderResendCache.get(node.attrs.id)) {
-				await placeholderResendCache.del(node.attrs.id)
-			}
-		}
-
-
 		const { fullMessage: msg, category, author, decrypt } = decryptMessageNode(
 			node,
 			authState.creds.me!.id,
