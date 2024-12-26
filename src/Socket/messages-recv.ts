@@ -781,12 +781,12 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 	}
 
 	const handleMessage = async(node: BinaryNode) => {
-		if(config.shouldIgnoreOfflineMessages && node.attrs.offline) {
+		if (config.shouldIgnoreOfflineMessages && node.attrs.offline) {
 			logger.debug({ key: node.attrs.key }, 'ignoring offline message')
 			await sendMessageAck(node)
 			return
 		}
-		if(shouldIgnoreJid(node.attrs.from) && node.attrs.from !== '@s.whatsapp.net') {
+		if (shouldIgnoreJid(node.attrs.from) && node.attrs.from !== '@s.whatsapp.net') {
 			logger.debug({ key: node.attrs.key }, 'ignored message')
 			await sendMessageAck(node)
 			return
@@ -794,6 +794,22 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 
 		
 		let response: string | undefined
+
+		if (getBinaryNodeChild(node, 'unavailable') && !getBinaryNodeChild(node, 'enc')) {
+			await sendMessageAck(node)
+			const { key } = decodeMessageNode(node, authState.creds.me!.id, authState.creds.me!.lid || '').fullMessage
+			response = await requestPlaceholderResend(key)
+			if (response === 'RESOLVED') {
+			  return
+			}
+
+			logger.debug('received unavailable message, acked and requested resend from phone')
+		} else {
+			if(placeholderResendCache.get(node.attrs.id)) {
+				await placeholderResendCache.del(node.attrs.id)
+			}
+		}
+
 
 		const { fullMessage: msg, category, author, decrypt } = decryptMessageNode(
 			node,
