@@ -7,8 +7,7 @@ import { chatModificationToAppPatch, ChatMutationMap, decodePatches, decodeSyncd
 import { makeMutex } from '../Utils/make-mutex'
 import processMessage from '../Utils/process-message'
 import { BinaryNode, getBinaryNodeChild, getBinaryNodeChildren, jidNormalizedUser, reduceBinaryNodeToDictionary, S_WHATSAPP_NET } from '../WABinary'
-import { USyncQuery, USyncUser } from '../WAUSync'
-import { makeUSyncSocket } from './usync'
+import { makeSocket } from './socket'
 import { LabelActionBody } from '../Types/Label'
 
 const MAX_SYNC_ATTEMPTS = 2
@@ -22,7 +21,7 @@ export const makeChatsSocket = (config: SocketConfig) => {
 		shouldIgnoreJid,
 		shouldSyncHistoryMessage,
 	} = config
-	const sock = makeUSyncSocket(config)
+	const sock = makeSocket(config)
 	const {
 		ev,
 		ws,
@@ -144,47 +143,83 @@ export const makeChatsSocket = (config: SocketConfig) => {
 		})
 	}
 
+	/** helper function to run a generic IQ query */
+	const interactiveQuery = async(userNodes: BinaryNode[], queryNode: BinaryNode) => {
+		const result = await query({
+			tag: 'iq',
+			attrs: {
+				to: S_WHATSAPP_NET,
+				type: 'get',
+				xmlns: 'usync',
+			},
+			content: [
+				{
+					tag: 'usync',
+					attrs: {
+						sid: generateMessageTag(),
+						mode: 'query',
+						last: 'true',
+						index: '0',
+						context: 'interactive',
+					},
+					content: [
+						{
+							tag: 'query',
+							attrs: {},
+							content: [queryNode]
+						},
+						{
+							tag: 'list',
+							attrs: {},
+							content: userNodes
+						}
+					]
+				}
+			],
+		})
+
+		const usyncNode = getBinaryNodeChild(result, 'usync')
+		const listNode = getBinaryNodeChild(usyncNode, 'list')
+		const users = getBinaryNodeChildren(listNode, 'user')
+
+		return users
+	}
+
 	const onWhatsApp = async(...jids: string[]) => {
-		const usyncQuery = new USyncQuery()
-			.withContactProtocol()
+		const query = { tag: 'contact', attrs: {} }
+		const list = jids.map((jid) => {
+			// insures only 1 + is there
+			const content = `+${jid.replace('+', '')}`
 
-		for(const jid of jids) {
-			const phone = `+${jid.replace('+', '').split('@')[0].split(':')[0]}`
-			usyncQuery.withUser(new USyncUser().withPhone(phone))
-		}
+			return {
+				tag: 'user',
+				attrs: {},
+				content: [{
+					tag: 'contact',
+					attrs: {},
+					content,
+				}],
+			}
+		})
+		const results = await interactiveQuery(list, query)
 
-		const results = await sock.executeUSyncQuery(usyncQuery)
-
-		if(results) {
-			return results.list.filter((a) => !!a.contact).map(({ contact, id }) => ({ jid: id, exists: contact }))
-		}
+		return results.map(user => {
+			const contact = getBinaryNodeChild(user, 'contact')
+			return { exists: contact?.attrs.type === 'in', jid: user.attrs.jid }
+		}).filter(item => item.exists)
 	}
 
-	const fetchStatus = async(...jids: string[]) => {
-		const usyncQuery = new USyncQuery()
-			.withStatusProtocol()
-
-		for(const jid of jids) {
-			usyncQuery.withUser(new USyncUser().withId(jid))
-		}
-
-		const result = await sock.executeUSyncQuery(usyncQuery)
+	const fetchStatus = async(jid: string) => {
+		const [result] = await interactiveQuery(
+			[{ tag: 'user', attrs: { jid } }],
+			{ tag: 'status', attrs: {} }
+		)
 		if(result) {
-			return result.list
-		}
-	}
-
-	const fetchDisappearingDuration = async(...jids: string[]) => {
-		const usyncQuery = new USyncQuery()
-			.withDisappearingModeProtocol()
-
-		for(const jid of jids) {
-			usyncQuery.withUser(new USyncUser().withId(jid))
-		}
-
-		const result = await sock.executeUSyncQuery(usyncQuery)
-		if(result) {
-			return result.list
+			const status = getBinaryNodeChild(result, 'status')
+			return {
+				status: status?.content!.toString(),
+				setAt: new Date(+(status?.attrs.t || 0) * 1000)
+			}
 		}
 	}
 
@@ -738,10 +773,8 @@ export const makeChatsSocket = (config: SocketConfig) => {
 
 		let props: { [_: string]: string } = {}
 		if(propsNode) {
-			if(propsNode.attrs?.hash) { // on some clients, the hash is returning as undefined
-				authState.creds.lastPropHash = propsNode?.attrs?.hash
-				ev.emit('creds.update', authState.creds)
-			}
+			authState.creds.lastPropHash = propsNode?.attrs?.hash
+			ev.emit('creds.update', authState.creds)
 			props = reduceBinaryNodeToDictionary(propsNode, 'prop')
 		}
 
@@ -981,11 +1014,7 @@ export const makeChatsSocket = (config: SocketConfig) => {
 				)
 		}
 
-		if(receivedPendingNotifications && // if we don't have the app state key
-			// we keep buffering events until we finally have
-			// the key and can sync the messages
-			// todo scrutinize
-			!authState.creds?.myAppStateKeyId) {
+		if(receivedPendingNotifications && !authState.creds?.myAppStateKeyId) {
 			ev.buffer()
 			needToFlushWithAppStateSync = true
 		}
@@ -1003,7 +1032,6 @@ export const makeChatsSocket = (config: SocketConfig) => {
 		onWhatsApp,
 		fetchBlocklist,
 		fetchStatus,
-		fetchDisappearingDuration,
 		updateProfilePicture,
 		removeProfilePicture,
 		updateProfileStatus,

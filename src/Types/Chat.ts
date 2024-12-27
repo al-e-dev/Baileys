@@ -1,3 +1,4 @@
+import { WAMessageKey } from 'baileys'
 import type { proto } from '../../WAProto'
 import type { AccountSettings } from './Auth'
 import { ContactAction } from './Contact'
@@ -5,7 +6,7 @@ import type { BufferedEventData } from './Events'
 import { LabelActionBody } from './Label'
 import type { ChatLabelAssociationActionBody } from './LabelAssociation'
 import type { MessageLabelAssociationActionBody } from './LabelAssociation'
-import type { MinimalMessage, WAMessageKey } from './Message'
+import type { MinimalMessage } from './Message'
 
 /** privacy settings in WhatsApp Web */
 export type WAPrivacyValue = 'all' | 'contacts' | 'contact_blacklist' | 'none'

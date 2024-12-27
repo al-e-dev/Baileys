@@ -1,4 +1,4 @@
-import Long from 'long'
+
 import { Boom } from '@hapi/boom'
 import { randomBytes } from 'crypto'
 import NodeCache from '@cacheable/node-cache'
@@ -118,7 +118,7 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 		logger.debug({ recv: { tag, attrs }, sent: stanza.attrs }, 'sent ack')
 		await sendNode(stanza)
 	}
-	
+
 	const rejectCall = async(callId: string, callFrom: string) => {
 		const stanza: BinaryNode = ({
 			tag: 'call',
@@ -471,7 +471,7 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 			const delPicture = getBinaryNodeChild(node, 'delete')
 
 			ev.emit('contacts.update', [{
-				id: from || ((setPicture || delPicture)?.attrs?.hash) || '',
+				id: jidNormalizedUser(node?.attrs?.from) || ((setPicture || delPicture)?.attrs?.hash) || '',
 				imgUrl: setPicture ? 'changed' : 'removed'
 			}])
 
@@ -781,12 +781,12 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 	}
 
 	const handleMessage = async(node: BinaryNode) => {
-		if (config.shouldIgnoreOfflineMessages && node.attrs.offline) {
+		if(config.shouldIgnoreOfflineMessages && node.attrs.offline) {
 			logger.debug({ key: node.attrs.key }, 'ignoring offline message')
 			await sendMessageAck(node)
 			return
 		}
-		if (shouldIgnoreJid(node.attrs.from) && node.attrs.from !== '@s.whatsapp.net') {
+		if(shouldIgnoreJid(node.attrs.from) && node.attrs.from !== '@s.whatsapp.net') {
 			logger.debug({ key: node.attrs.key }, 'ignored message')
 			await sendMessageAck(node)
 			return
@@ -795,12 +795,12 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 		
 		let response: string | undefined
 
-		if (getBinaryNodeChild(node, 'unavailable') && !getBinaryNodeChild(node, 'enc')) {
+		if(getBinaryNodeChild(node, 'unavailable') && !getBinaryNodeChild(node, 'enc')) {
 			await sendMessageAck(node)
 			const { key } = decodeMessageNode(node, authState.creds.me!.id, authState.creds.me!.lid || '').fullMessage
 			response = await requestPlaceholderResend(key)
-			if (response === 'RESOLVED') {
-			  return
+			if(response === 'RESOLVED') {
+				return
 			}
 
 			logger.debug('received unavailable message, acked and requested resend from phone')
