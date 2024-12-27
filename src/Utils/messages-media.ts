@@ -83,22 +83,18 @@ export function getMediaKeys(buffer: Uint8Array | string | null | undefined, med
 }
 
 /** Extracts video thumb using FFMPEG */
-const extractVideoThumb = async(
+const extractVideoThumb = async (
 	path: string,
 	destPath: string,
 	time: string,
-	size: { width: number, height: number },
-) => new Promise<void>((resolve, reject) => {
-    	const cmd = `ffmpeg -ss ${time} -i ${path} -y -vf scale=${size.width}:-1 -vframes 1 -f image2 ${destPath}`
-    	exec(cmd, (err) => {
-    		if(err) {
-			reject(err)
-		} else {
-			resolve()
-		}
-    	})
-})
-
+	size: { width: number, height: number }
+): Promise<void> => new Promise((resolve, reject) =>
+	exec(
+		`ffmpeg -ss ${time} -i ${path} -y -vf scale=${size.width}:-1 -vframes 1 -f image2 ${destPath}`,
+		(err) => (err ? reject(err) : resolve())
+	)
+)
+	
 export const extractImageThumb = async(bufferOrFilePath: Readable | Buffer | string, width = 32) => {
 	if(bufferOrFilePath instanceof Readable) {
 		bufferOrFilePath = await toBuffer(bufferOrFilePath)
