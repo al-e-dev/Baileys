@@ -181,7 +181,7 @@ export const prepareWAMessageMedia = async(
 		(async() => {
 			const result = await options.upload(
 				encWriteStream,
-				{ fileEncSha256B64, mediaType, timeoutMs: options.mediaUploadTimeoutMs, newsletter: !!options.newsletter }
+				{ fileEncSha256B64, mediaType, timeoutMs: options.mediaUploadTimeoutMs }
 			)
 			logger?.debug({ mediaType, cacheableKey }, 'uploaded media')
 			return result
@@ -638,26 +638,11 @@ export const generateWAMessageFromContent = (
 		let quotedMsg = normalizeMessageContent(quoted.message)!
 		const msgType = getContentType(quotedMsg)!
 		// strip any redundant properties
-		if(quotedMsg) {
-		    quotedMsg = proto.Message.fromObject({ [msgType]: quotedMsg[msgType] })
+		quotedMsg = proto.Message.fromObject({ [msgType]: quotedMsg[msgType] })
 
-		    const quotedContent = quotedMsg[msgType]
-		    if(typeof quotedContent === 'object' && quotedContent && 'contextInfo' in quotedContent) {
-			    delete quotedContent.contextInfo
-		    }
-
-		    const contextInfo: proto.IContextInfo = innerMessage[key].contextInfo || { }
-		    contextInfo.participant = jidNormalizedUser(participant!)
-		    contextInfo.stanzaId = quoted.key.id
-		    contextInfo.quotedMessage = quotedMsg
-
-		    // if a participant is quoted, then it must be a group
-		    // hence, remoteJid of group must also be entered
-		    if(jid !== quoted.key.remoteJid) {
-			    contextInfo.remoteJid = quoted.key.remoteJid
-		    }
-
-		    innerMessage[key].contextInfo = contextInfo
+		const quotedContent = quotedMsg[msgType]
+		if(typeof quotedContent === 'object' && quotedContent && 'contextInfo' in quotedContent) {
+			delete quotedContent.contextInfo
 		}
 
 		const contextInfo: proto.IContextInfo = innerMessage[key].contextInfo || { }
@@ -936,7 +921,7 @@ type DownloadMediaMessageContext = {
 	logger: Logger
 }
 
-const REUPLOAD_REQUIRED_STATUS = [410, 404, 403]
+const REUPLOAD_REQUIRED_STATUS = [410, 404]
 
 /**
  * Downloads the given message. Throws an error if it's not a media message
