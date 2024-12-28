@@ -551,30 +551,7 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 						})
 					}
 				}
-
-				const content: BinaryNode = {
-					tag: "biz",
-					attrs: {},
-					content: [
-						{
-							tag: "interactive",
-							attrs: {
-								type: "native_flow",
-								v: "1"
-							},
-							content: [
-								{
-									tag: "native_flow",
-									attrs: {
-										name: "quick_reply"
-									},
-									content: undefined
-								},
-							]
-						}
-					]
-				}
-
+				
 				const stanza: BinaryNode = {
 					tag: 'message',
 					attrs: {
@@ -582,10 +559,7 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 						type: isNewsletter ? getTypeMessage(message) : 'text',
 						...(additionalAttributes || {})
 					},
-					content: [
-						...binaryNodeContent,
-						content
-					]
+					content: binaryNodeContent
 				}
 				
 				// if the participant to send to is explicitly specified (generally retry recp)
@@ -617,6 +591,29 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 
 				if(additionalNodes && additionalNodes.length > 0) {
 					(stanza.content as BinaryNode[]).push(...additionalNodes)
+				} else if ((isJidGroup(jid) || isJidUser(jid) && ['viewOnceMessage', 'viewOnceMessageV2', 'viewOnceMessageV2Extension', 'ephemeralMessage', 'templateMessage', 'interactiveMessage', 'buttonsMessage'].find(_ => message?.[_]))) {
+					(stanza.content as BinaryNode[]).push({
+						tag: "biz",
+						attrs: {},
+						content: [
+							{
+								tag: "interactive",
+								attrs: {
+									type: "native_flow",
+									v: "1"
+								},
+								content: [
+									{
+										tag: "native_flow",
+										attrs: {
+											name: "quick_reply"
+										},
+										content: undefined
+									},
+								]
+							}
+						]
+					})
 				}
 
 				const buttonType = getButtonType(message)
