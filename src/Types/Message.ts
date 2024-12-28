@@ -145,7 +145,7 @@ export type AnyMediaMessageContent = (
         mimetype: string
         fileName?: string
         caption?: string
-        } & Contextable & Buttonable & Templatable))
+    } & Contextable & Buttonable & Templatable))
     & { mimetype?: string } & Editable
 
 export type ButtonReplyInfo = {
@@ -170,12 +170,11 @@ export type AnyRegularMessageContent = (
     ({
 	    text: string
         linkPreview?: WAUrlInfo | null
-    }
-    & Mentionable & Contextable & Editable)
+    } & Mentionable & Contextable & Buttonable & Templatable & Listable & Editable)
     | AnyMediaMessageContent
     | ({
         poll: PollMessageOptions
-    } & Mentionable & Contextable & Editable)
+    } & Mentionable & Contextable & Buttonable & Templatable & Listable & Editable)
     | {
         contacts: {
             displayName?: string

@@ -551,7 +551,7 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 						})
 					}
 				}
-				
+
 				const stanza: BinaryNode = {
 					tag: 'message',
 					attrs: {
@@ -559,7 +559,6 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 						type: isNewsletter ? getTypeMessage(message) : 'text',
 						...(additionalAttributes || {})
 					},
-					content: binaryNodeContent
 				}
 				
 				// if the participant to send to is explicitly specified (generally retry recp)
