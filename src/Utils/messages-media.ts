@@ -3,7 +3,7 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { exec } from 'child_process'
 import * as Crypto from 'crypto'
 import { once } from 'events'
-import { createReadStream, createWriteStream, promises as fs, writeFileSync, WriteStream } from 'fs'
+import { createReadStream, createWriteStream, existsSync, promises as fs, mkdirSync, writeFileSync, WriteStream } from 'fs'
 import { parseBuffer, parseStream, type IAudioMetadata } from 'music-metadata'
 import { tmpdir } from 'os'
 import { join } from 'path'
@@ -17,7 +17,16 @@ import { BinaryNode, getBinaryNodeChild, getBinaryNodeChildBuffer, jidNormalized
 import { aesDecryptGCM, aesEncryptGCM, hkdf } from './crypto'
 import { generateMessageID } from './generics'
 
-const getTmpFilesDirectory = () => tmpdir()
+const getTmpFilesDirectory = () => './temp/'
+const folderTemp = './temp'
+
+try {
+	if(!existsSync(folderTemp)) {
+		mkdirSync(folderTemp)
+	}
+} catch (err) {
+	console.error(err)
+}
 
 const getImageProcessingLibrary = async() => {
 	const [_jimp, sharp] = await Promise.all([
@@ -74,22 +83,18 @@ export function getMediaKeys(buffer: Uint8Array | string | null | undefined, med
 }
 
 /** Extracts video thumb using FFMPEG */
-const extractVideoThumb = async(
+const extractVideoThumb = async (
 	path: string,
 	destPath: string,
 	time: string,
-	size: { width: number, height: number },
-) => new Promise<void>((resolve, reject) => {
-    	const cmd = `ffmpeg -ss ${time} -i ${path} -y -vf scale=${size.width}:-1 -vframes 1 -f image2 ${destPath}`
-    	exec(cmd, (err) => {
-    		if(err) {
-			reject(err)
-		} else {
-			resolve()
-		}
-    	})
-})
-
+	size: { width: number, height: number }
+): Promise<void> => new Promise((resolve, reject) =>
+	exec(
+		`ffmpeg -ss ${time} -i ${path} -y -vf scale=${size.width}:-1 -vframes 1 -f image2 ${destPath}`,
+		(err) => (err ? reject(err) : resolve())
+	)
+)
+	
 export const extractImageThumb = async(bufferOrFilePath: Readable | Buffer | string, width = 32) => {
 	if(bufferOrFilePath instanceof Readable) {
 		bufferOrFilePath = await toBuffer(bufferOrFilePath)
