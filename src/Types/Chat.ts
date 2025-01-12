@@ -112,7 +112,11 @@ export type InitialReceivedChatsState = {
         lastMsgTimestamp: number
     }
 }
-
-export type InitialAppStateSyncOptions = {
-    accountSettings: AccountSettings
+export interface InitialAppStateSyncOptions {
+    accountSettings: AccountSettings;
+    recvChats?: {
+        [jid: string]: {
+            lastMsgRecvTimestamp: number;
+        };
+    };
 }
