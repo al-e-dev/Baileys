@@ -725,7 +725,7 @@ export const processSyncAction = (
 	syncAction: ChatMutation,
 	ev: BaileysEventEmitter,
 	me: Contact,
-	initialSyncOpts?: InitialAppStateSyncOptions,
+	initialSyncOpts?: InitialAppStateSyncOptions | undefined,
 	logger?: Logger,
 ) => {
 	const isInitialSync = !!initialSyncOpts
