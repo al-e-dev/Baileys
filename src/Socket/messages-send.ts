@@ -276,24 +276,24 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 		return msgId
 	}
 
-	const createParticipantNodes = async(
+	const createParticipantNodes = async (
 		jids: string[],
 		message: proto.IMessage,
 		extraAttrs?: BinaryNode['attrs']
-	) => {
+	): Promise<{ nodes: BinaryNode[], shouldIncludeDeviceIdentity: boolean }> => {
 		const patched = await patchMessageBeforeSending(message, jids)
 		const bytes = encodeWAMessage(patched)
-
+		
 		let shouldIncludeDeviceIdentity = false
 		const nodes = await Promise.all(
 			jids.map(
-				async jid => {
+				async (jid) => {
 					const { type, ciphertext } = await signalRepository
-						.encryptMessage({ jid, data: bytes })
-					if(type === 'pkmsg') {
+					.encryptMessage({ jid, data: bytes })
+					if (type === 'pkmsg') {
 						shouldIncludeDeviceIdentity = true
 					}
-
+		
 					const node: BinaryNode = {
 						tag: 'to',
 						attrs: { jid },
