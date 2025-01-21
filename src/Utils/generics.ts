@@ -201,7 +201,7 @@ export const generateMessageIDV2 = (userId?: string): string => {
 	random.copy(data, 28)
 
 	const hash = createHash('sha256').update(data).digest()
-	return 'ALE-DEVS' + hash.toString('hex').toUpperCase().substring(0, 18)
+	return 'ALE-DEVS' + '-' + hash.toString('hex').toUpperCase().substring(0, 18)
 }
 
 // generate a random ID to attach to a message

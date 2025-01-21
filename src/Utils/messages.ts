@@ -525,12 +525,12 @@ export const generateWAMessageContent = async(
 		}
 	} else if('requestPhoneNumber' in message) {
 		m.requestPhoneNumberMessage = {}
-	} else {
-		m = await prepareWAMessageMedia(
-			message,
-			options
-		)
-	}
+    } else {
+        m = await prepareWAMessageMedia(
+            message,
+            options
+        )
+    }
 	if('buttons' in message && !!message.buttons) {
 		const buttonsMessage: proto.Message.IButtonsMessage = {
 			buttons: message.buttons!.map(b => ({ ...b, type: proto.Message.ButtonsMessage.Button.Type.RESPONSE }))
