@@ -869,7 +869,6 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 				)
 				const isDeleteMsg = 'delete' in content && !!content.delete
 				const isEditMsg = 'edit' in content && !!content.edit
-				const isAiMsg = 'ai' in content && !!content.ai;
 				const isPinMsg = 'pin' in content && !!content.pin
 				const isPollMessage = 'poll' in content && !!content.poll
 				const additionalAttributes: BinaryNodeAttributes = { }
@@ -894,14 +893,7 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 							polltype: 'creation'
 						},
 					} as BinaryNode)
-				}  else if (isAiMsg) {
-                    additionalNodes.push({
-                        attrs: {
-                            biz_bot: '1'
-                        },
-                        tag: "bot"
-                    });
-                }
+				}
 
 				if (mediaHandle) {
 					additionalAttributes['media_id'] = mediaHandle
