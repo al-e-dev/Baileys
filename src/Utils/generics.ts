@@ -5,7 +5,7 @@ import { platform, release } from 'os'
 import { Logger } from 'pino'
 import qrcode from 'qrcode-terminal'
 import { proto } from '../../WAProto'
-import { version as baileysVersion } from '../Defaults/baileys-version.json'
+import { version as baileysVersion } from '../Defaults/al-e-dev-version.json'
 import { BaileysEventEmitter, BaileysEventMap, BrowsersMap, ConnectionState, DisconnectReason, WACallUpdateType, WAVersion } from '../Types'
 import { BinaryNode, getAllBinaryNodeChildren, jidDecode } from '../WABinary'
 

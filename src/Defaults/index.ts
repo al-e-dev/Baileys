@@ -4,7 +4,7 @@ import { makeLibSignalRepository } from '../Signal/libsignal'
 import type { AuthenticationState, MediaType, SocketConfig, WAVersion } from '../Types'
 import { Browsers } from '../Utils'
 import logger from '../Utils/logger'
-import { version } from './baileys-version.json'
+import { version } from './al-e-dev-version.json'
 
 export const UNAUTHORIZED_CODES = [401, 403, 419]
 
