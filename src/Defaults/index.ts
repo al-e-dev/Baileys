@@ -67,7 +67,8 @@ export const DEFAULT_CONNECTION_CONFIG: SocketConfig = {
 	},
 	getMessage: async() => undefined,
 	cachedGroupMetadata: async() => undefined,
-	makeSignalRepository: makeLibSignalRepository
+	makeSignalRepository: makeLibSignalRepository,
+	countryCode: 'US', // Agrega esta línea
 }
 
 export const MEDIA_PATH_MAP: { [T in MediaType]?: string } = {
