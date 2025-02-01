@@ -13,6 +13,7 @@ enum ADVEncryptionType {
     E2EE = 0;
     HOSTED = 1;
 }
+
 message ADVKeyIndexList {
     optional uint32 rawId = 1;
     optional uint64 timestamp = 2;
@@ -1245,6 +1246,38 @@ message MediaNotifyMessage {
     optional uint64 fileLength = 3;
 }
 
+message MediaEntry {
+    optional bytes fileSha256 = 1;
+    optional bytes mediaKey = 2;
+    optional bytes fileEncSha256 = 3;
+    optional string directPath = 4;
+    optional int64 mediaKeyTimestamp = 5;
+    optional string serverMediaType = 6;
+    optional bytes uploadToken = 7;
+    optional bytes validatedTimestamp = 8;
+    optional bytes sidecar = 9;
+    optional string objectId = 10;
+    optional string fbid = 11;
+    optional DownloadableThumbnail downloadableThumbnail = 12;
+    optional string handle = 13;
+    optional string filename = 14;
+    optional ProgressiveJpegDetails progressiveJpegDetails = 15;
+    message DownloadableThumbnail {
+        optional bytes fileSha256 = 1;
+        optional bytes fileEncSha256 = 2;
+        optional string directPath = 3;
+        optional bytes mediaKey = 4;
+        optional int64 mediaKeyTimestamp = 5;
+        optional string objectId = 6;
+    }
+    
+    message ProgressiveJpegDetails {
+        repeated int64 scanLengths = 1;
+        optional bytes sidecar = 2;
+    }
+    
+}
+
 message MediaRetryNotification {
     optional string stanzaId = 1;
     optional string directPath = 2;
@@ -1330,7 +1363,9 @@ message Message {
     optional EncEventResponseMessage encEventResponseMessage = 76;
     optional CommentMessage commentMessage = 77;
     optional NewsletterAdminInviteMessage newsletterAdminInviteMessage = 78;
+    optional ExtendedTextMessageWithParentKey extendedTextMessageWithParentKey = 79;
     optional PlaceholderMessage placeholderMessage = 80;
+    optional EncEventUpdateMessage encEventUpdateMessage = 81;
     optional SecretEncryptedMessage secretEncryptedMessage = 82;
     optional AlbumMessage albumMessage = 83;
     optional FutureProofMessage eventCoverImage = 85;
@@ -1625,6 +1660,12 @@ message Message {
         optional bytes encPayload = 2;
         optional bytes encIv = 3;
     }
+
+    message EncEventUpdateMessage {
+        optional MessageKey eventCreationMessageKey = 1;
+        optional bytes encPayload = 2;
+        optional bytes encIv = 3;
+    }
     
     message EncEventResponseMessage {
         optional MessageKey eventCreationMessageKey = 1;
@@ -1636,6 +1677,11 @@ message Message {
         optional MessageKey targetMessageKey = 1;
         optional bytes encPayload = 2;
         optional bytes encIv = 3;
+    }
+
+    message EventEditMessage {
+        optional Message.EventMessage eventEditMessage = 1;
+        optional int64 editTimestampMs = 2;
     }
     
     message EventMessage {
@@ -1660,6 +1706,11 @@ message Message {
             NOT_GOING = 2;
             MAYBE = 3;
         }
+    }
+
+    message EventUpdateMessage {
+        optional Message.EventResponseMessage response = 1;
+        optional Message.EventEditMessage edit = 2;
     }
     
     message ExtendedTextMessage {
@@ -1714,6 +1765,11 @@ message Message {
             PAYMENT_LINKS = 6;
             PROFILE = 7;
         }
+    }
+
+    message ExtendedTextMessageWithParentKey {
+        optional MessageKey key = 1;
+        optional Message.ExtendedTextMessage extendedTextMessage = 2;
     }
     
     message FullHistorySyncOnDemandRequestMetadata {
@@ -3041,6 +3097,41 @@ message ProloguePayload {
 message Pushname {
     optional string id = 1;
     optional string pushname = 2;
+}
+
+message QP {
+    enum ClauseType {
+        AND = 1;
+        OR = 2;
+        NOR = 3;
+    }
+    message Filter {
+        required string filterName = 1;
+        repeated QP.FilterParameters parameters = 2;
+        optional QP.FilterResult filterResult = 3;
+        required QP.FilterClientNotSupportedConfig clientNotSupportedConfig = 4;
+    }
+    
+    message FilterClause {
+        required QP.ClauseType clauseType = 1;
+        repeated QP.FilterClause clauses = 2;
+        repeated QP.Filter filters = 3;
+    }
+    
+    enum FilterClientNotSupportedConfig {
+        PASS_BY_DEFAULT = 1;
+        FAIL_BY_DEFAULT = 2;
+    }
+    message FilterParameters {
+        optional string key = 1;
+        optional string value = 2;
+    }
+    
+    enum FilterResult {
+        TRUE = 1;
+        FALSE = 2;
+        UNKNOWN = 3;
+    }
 }
 
 message Reaction {
