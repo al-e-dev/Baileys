@@ -1,5 +1,5 @@
 syntax = "proto3";
-package waproto;
+package proto;
 
 message ADVDeviceIdentity {
     optional uint32 rawId = 1;
