@@ -1,4 +1,4 @@
-syntax = "proto3";
+syntax = "proto2";
 package proto;
 
 /// WhatsApp Version: 2.3000.1019769879
