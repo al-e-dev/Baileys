@@ -59,7 +59,13 @@ export type AuthenticationCreds = SignalCreds & {
     /** number of times history & app state has been synced */
     accountSyncCounter: number
     accountSettings: AccountSettings
-    registered: boolean
+	// mobile creds
+	deviceId: string
+	phoneId: string
+	identityId: Buffer
+	registered: boolean
+	backupToken: Buffer
+	registration: RegistrationOptions
     pairingCode: string | undefined
     lastPropHash: string | undefined
     routingInfo: Buffer | undefined

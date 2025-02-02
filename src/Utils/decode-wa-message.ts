@@ -81,10 +81,6 @@ export function decodeMessageNode(
 		msgType = 'group'
 		author = participant
 		chatId = from
-	} else if (isJidNewsletter(from)) {
-		msgType = 'newsletter'
-		author = from
-		chatId = from
 	} else if (isJidBroadcast(from)) {
 		if (!participant) {
 			throw new Boom('No participant in group message')
@@ -101,21 +97,20 @@ export function decodeMessageNode(
 		author = participant
 	} else if (isJidNewsletter(from)) {
 		msgType = 'newsletter'
-		chatId = from
 		author = from
+		chatId = from
 	} else {
 		throw new Boom('Unknown message type', { data: stanza })
 	}
 
-	const fromMe = isJidNewsletter(from) ? !!stanza.attrs?.is_sender || false : (isLidUser(from) ? isMeLid : isMe)(stanza.attrs.participant || stanza.attrs.from)
-	const pushname = stanza?.attrs?.notify
+	const fromMe = isJidNewsletter(from) ? !!stanza.attrs?.is_sender : (isLidUser(from) ? isMeLid : isMe)(stanza.attrs.participant || stanza.attrs.from)
+	const pushname = stanza.attrs.notify
 
 	const key: WAMessageKey = {
 		remoteJid: chatId,
 		fromMe,
 		id: msgId,
-		participant,
-		'server_id': stanza.attrs?.server_id
+		participant
 	}
 
 	const fullMessage: proto.IWebMessageInfo = {
@@ -154,6 +149,7 @@ export const decryptMessageNode = (
 		author,
 		async decrypt() {
 			let decryptables = 0
+
 			async function processSenderKeyDistribution(msg: proto.IMessage) {
 				if (msg.senderKeyDistributionMessage) {
 					try {
@@ -183,7 +179,7 @@ export const decryptMessageNode = (
 						fullMessage.verifiedBizName = details.verifiedName
 					}
 
-					if (tag !== 'enc' && tag !== 'plaintext') {
+					if (tag !== 'enc') {
 						continue
 					}
 
@@ -191,12 +187,13 @@ export const decryptMessageNode = (
 						continue
 					}
 
+
 					decryptables += 1
 
 					let msgBuffer: Uint8Array
 
 					try {
-						const e2eType = tag === 'plaintext' ? 'plaintext' : attrs.type
+						const e2eType = attrs.type
 						switch (e2eType) {
 							case 'skmsg':
 								msgBuffer = await repository.decryptGroupMessage({
@@ -225,7 +222,7 @@ export const decryptMessageNode = (
 								throw new Error(`Unknown e2e type: ${e2eType}`)
 						}
 
-						let msg: proto.IMessage = proto.Message.decode(e2eType !== 'plaintext' ? unpadRandomMax16(msgBuffer) : msgBuffer)
+						let msg: proto.IMessage = proto.Message.decode(unpadRandomMax16(msgBuffer))
 						msg = msg.deviceSentMessage?.message || msg
 						await processSenderKeyDistribution(msg)
 

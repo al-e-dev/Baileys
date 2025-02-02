@@ -3,10 +3,10 @@ import { GroupMetadata, GroupParticipant, ParticipantAction, SocketConfig, WAMes
 import { generateMessageID, generateMessageIDV2, unixTimestampSeconds } from '../Utils'
 import logger from '../Utils/logger'
 import { BinaryNode, getBinaryNodeChild, getBinaryNodeChildren, getBinaryNodeChildString, jidEncode, jidNormalizedUser } from '../WABinary'
-import { makeBusinessSocket } from './business'
+import { makeMessagesRecvSocket } from './messages-recv'
 
 export const makeCommunitiesSocket = (config: SocketConfig) => {
-	const sock = makeBusinessSocket(config)
+	const sock = makeMessagesRecvSocket(config)
 	const { authState, ev, query, upsertMessage } = sock
 
 	const communityQuery = async(jid: string, type: 'get' | 'set', content: BinaryNode[]) => (

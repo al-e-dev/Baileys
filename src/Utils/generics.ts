@@ -20,10 +20,11 @@ const PLATFORM_MAP = {
 }
 
 export const Browsers: BrowsersMap = {
-	ubuntu: (browser) => ['Ubuntu', browser, '22.04.4'],
+	ubuntu: (browser) => ['Ubuntu', browser, '24.04.1'],
 	macOS: (browser) => ['Mac OS', browser, '14.4.1'],
-	baileys: (browser) => ['Baileys', browser, '6.5.0'],
+	baileys: (browser) => ['Baileys', browser, '6.7.9'],
 	windows: (browser) => ['Windows', browser, '10.0.22631'],
+	iOS: (browser) => ['iOS', browser, '18.1'],
 	/** The appropriate browser based on your OS & release */
 	appropriate: (browser) => [ PLATFORM_MAP[platform()] || 'Ubuntu', browser, release() ]
 }
@@ -201,11 +202,11 @@ export const generateMessageIDV2 = (userId?: string): string => {
 	random.copy(data, 28)
 
 	const hash = createHash('sha256').update(data).digest()
-	return 'ALE-DEVS' + '-' + hash.toString('hex').toUpperCase().substring(0, 18)
+	return 'DEVS' + hash.toString('hex').toUpperCase().substring(0, 18)
 }
 
 // generate a random ID to attach to a message
-export const generateMessageID = () => 'ALE-DEVS' + '-' + randomBytes(18).toString('hex').toUpperCase()
+export const generateMessageID = () => 'DEVS' + randomBytes(18).toString('hex').toUpperCase()
 
 export function bindWaitForEvent<T extends keyof BaileysEventMap>(ev: BaileysEventEmitter, event: T) {
 	return async(check: (u: BaileysEventMap[T]) => boolean | undefined, timeoutMs?: number) => {

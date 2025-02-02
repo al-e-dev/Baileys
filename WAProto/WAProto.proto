@@ -3194,6 +3194,38 @@ message PremiumMessageInfo {
     optional string serverCampaignId = 1;
 }
 
+message PrimaryEphemeralIdentity {
+    optional bytes publicKey = 1;
+    optional bytes nonce = 2;
+}
+
+enum PrivacySystemMessage {
+    E2EE_MSG = 1;
+    NE2EE_SELF = 2;
+    NE2EE_OTHER = 3;
+}
+message ProcessedVideo {
+    optional string directPath = 1;
+    optional bytes fileSha256 = 2;
+    optional uint32 height = 3;
+    optional uint32 width = 4;
+    optional uint64 fileLength = 5;
+    optional uint32 bitrate = 6;
+    optional VideoQuality quality = 7;
+    repeated string capabilities = 8;
+    enum VideoQuality {
+        UNDEFINED = 0;
+        LOW = 1;
+        MID = 2;
+        HIGH = 3;
+    }
+}
+
+message ProloguePayload {
+    optional bytes companionEphemeralIdentity = 1;
+    optional CompanionCommitment commitment = 2;
+}
+
 message Pushname {
     optional string id = 1;
     optional string pushname = 2;
