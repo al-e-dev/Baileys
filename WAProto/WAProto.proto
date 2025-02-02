@@ -349,6 +349,7 @@ message BotPluginMetadata {
     optional uint32 referenceIndex = 6;
     optional uint32 expectedLinksCount = 7;
     optional string searchQuery = 9;
+    optional uint32 pluginVersion = 8;
     optional MessageKey parentPluginMessageKey = 10;
     optional PluginType deprecatedField = 11;
     optional PluginType parentPluginType = 12;
@@ -1352,6 +1353,38 @@ message MediaData {
     optional string localPath = 1;
 }
 
+message MediaEntry {
+    optional bytes fileSha256 = 1;
+    optional bytes mediaKey = 2;
+    optional bytes fileEncSha256 = 3;
+    optional string directPath = 4;
+    optional int64 mediaKeyTimestamp = 5;
+    optional string serverMediaType = 6;
+    optional bytes uploadToken = 7;
+    optional bytes validatedTimestamp = 8;
+    optional bytes sidecar = 9;
+    optional string objectId = 10;
+    optional string fbid = 11;
+    optional DownloadableThumbnail downloadableThumbnail = 12;
+    optional string handle = 13;
+    optional string filename = 14;
+    optional ProgressiveJpegDetails progressiveJpegDetails = 15;
+    message DownloadableThumbnail {
+        optional bytes fileSha256 = 1;
+        optional bytes fileEncSha256 = 2;
+        optional string directPath = 3;
+        optional bytes mediaKey = 4;
+        optional int64 mediaKeyTimestamp = 5;
+        optional string objectId = 6;
+    }
+    
+    message ProgressiveJpegDetails {
+        repeated int64 scanLengths = 1;
+        optional bytes sidecar = 2;
+    }
+    
+}
+
 message MediaNotifyMessage {
     optional string expressPathUrl = 1;
     optional bytes fileEncSha256 = 2;
@@ -1443,7 +1476,9 @@ message Message {
     optional EncEventResponseMessage encEventResponseMessage = 76;
     optional CommentMessage commentMessage = 77;
     optional NewsletterAdminInviteMessage newsletterAdminInviteMessage = 78;
+    optional ExtendedTextMessageWithParentKey extendedTextMessageWithParentKey = 79;
     optional PlaceholderMessage placeholderMessage = 80;
+    optional EncEventUpdateMessage encEventUpdateMessage = 81;
     optional SecretEncryptedMessage secretEncryptedMessage = 82;
     optional AlbumMessage albumMessage = 83;
     optional FutureProofMessage eventCoverImage = 85;
@@ -1749,11 +1784,22 @@ message Message {
         optional bytes encPayload = 2;
         optional bytes encIv = 3;
     }
+
+    message EncEventUpdateMessage {
+        optional MessageKey eventCreationMessageKey = 1;
+        optional bytes encPayload = 2;
+        optional bytes encIv = 3;
+    }
     
     message EncReactionMessage {
         optional MessageKey targetMessageKey = 1;
         optional bytes encPayload = 2;
         optional bytes encIv = 3;
+    }
+
+    message EventEditMessage {
+        optional Message.EventMessage eventEditMessage = 1;
+        optional int64 editTimestampMs = 2;
     }
     
     message EventMessage {
@@ -1779,10 +1825,16 @@ message Message {
             MAYBE = 3;
         }
     }
+
+    message EventUpdateMessage {
+        optional Message.EventResponseMessage response = 1;
+        optional Message.EventEditMessage edit = 2;
+    }
     
     message ExtendedTextMessage {
         optional string text = 1;
         optional string matchedText = 2;
+        optional string canonicalUrl = 4;
         optional string description = 5;
         optional string title = 6;
         optional fixed32 textArgb = 7;
@@ -1833,6 +1885,11 @@ message Message {
         }
     }
     
+    message ExtendedTextMessageWithParentKey {
+        optional MessageKey key = 1;
+        optional Message.ExtendedTextMessage extendedTextMessage = 2;
+    }
+
     message FullHistorySyncOnDemandRequestMetadata {
         optional string requestId = 1;
     }
@@ -2327,6 +2384,7 @@ message Message {
                 optional string title = 2;
                 optional string description = 3;
                 optional bytes thumbData = 4;
+                optional string canonicalUrl = 5;
                 optional string matchText = 6;
                 optional string previewType = 7;
                 optional LinkPreviewHighQualityThumbnail hqThumbnail = 8;
@@ -2834,6 +2892,7 @@ message MsgOpaqueData {
     optional double lat = 7;
     optional int32 paymentAmount1000 = 8;
     optional string paymentNoteMsgBody = 9;
+    optional string canonicalUrl = 10;
     optional string matchedText = 11;
     optional string title = 12;
     optional string description = 13;
@@ -3135,6 +3194,46 @@ message PremiumMessageInfo {
     optional string serverCampaignId = 1;
 }
 
+message Pushname {
+    optional string id = 1;
+    optional string pushname = 2;
+}
+
+message QP {
+    enum ClauseType {
+        AND = 1;
+        OR = 2;
+        NOR = 3;
+    }
+    message Filter {
+        required string filterName = 1;
+        repeated QP.FilterParameters parameters = 2;
+        optional QP.FilterResult filterResult = 3;
+        required QP.FilterClientNotSupportedConfig clientNotSupportedConfig = 4;
+    }
+    
+    message FilterClause {
+        required QP.ClauseType clauseType = 1;
+        repeated QP.FilterClause clauses = 2;
+        repeated QP.Filter filters = 3;
+    }
+    
+    enum FilterClientNotSupportedConfig {
+        PASS_BY_DEFAULT = 1;
+        FAIL_BY_DEFAULT = 2;
+    }
+    message FilterParameters {
+        optional string key = 1;
+        optional string value = 2;
+    }
+    
+    enum FilterResult {
+        TRUE = 1;
+        FALSE = 2;
+        UNKNOWN = 3;
+    }
+}
+
 message PrimaryEphemeralIdentity {
     optional bytes publicKey = 1;
     optional bytes nonce = 2;
@@ -3165,11 +3264,6 @@ message ProcessedVideo {
 message ProloguePayload {
     optional bytes companionEphemeralIdentity = 1;
     optional CompanionCommitment commitment = 2;
-}
-
-message Pushname {
-    optional string id = 1;
-    optional string pushname = 2;
 }
 
 message Reaction {
