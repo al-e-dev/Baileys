@@ -3,8 +3,9 @@ import axios, { AxiosRequestConfig } from 'axios'
 import { createHash, randomBytes } from 'crypto'
 import { platform, release } from 'os'
 import { Logger } from 'pino'
+import qrcode from 'qrcode-terminal'
 import { proto } from '../../WAProto'
-import { version as baileysVersion } from '../Defaults/baileys-version.json'
+import { version as baileysVersion } from '../Defaults/al-e-dev-version.json'
 import { BaileysEventEmitter, BaileysEventMap, BrowsersMap, ConnectionState, DisconnectReason, WACallUpdateType, WAVersion } from '../Types'
 import { BinaryNode, getAllBinaryNodeChildren, jidDecode } from '../WABinary'
 
@@ -200,11 +201,11 @@ export const generateMessageIDV2 = (userId?: string): string => {
 	random.copy(data, 28)
 
 	const hash = createHash('sha256').update(data).digest()
-	return '3EB0' + hash.toString('hex').toUpperCase().substring(0, 18)
+	return 'ALE-DEVS' + '-' + hash.toString('hex').toUpperCase().substring(0, 18)
 }
 
 // generate a random ID to attach to a message
-export const generateMessageID = () => '3EB0' + randomBytes(18).toString('hex').toUpperCase()
+export const generateMessageID = () => 'ALE-DEVS' + '-' + randomBytes(18).toString('hex').toUpperCase()
 
 export function bindWaitForEvent<T extends keyof BaileysEventMap>(ev: BaileysEventEmitter, event: T) {
 	return async(check: (u: BaileysEventMap[T]) => boolean | undefined, timeoutMs?: number) => {
@@ -246,12 +247,11 @@ export const bindWaitForConnectionUpdate = (ev: BaileysEventEmitter) => bindWait
 export const printQRIfNecessaryListener = (ev: BaileysEventEmitter, logger: Logger) => {
 	ev.on('connection.update', async({ qr }) => {
 		if(qr) {
-			const QR = await import("qrcode-terminal")
-				.then(m => m.default || m)
-				.catch(() => {
-					logger.warn('qrcode-terminal not installed')
-				})
-			QR?.generate(qr, { small: true })
+			if(qrcode) {
+				qrcode?.generate(qr, { small: true })
+			} else {
+				console.log('please install qrcode-terminal')
+			}
 		}
 	})
 }

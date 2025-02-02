@@ -1,10 +1,9 @@
-import { createHash } from 'crypto'
 import { proto } from '../../WAProto'
 import { makeLibSignalRepository } from '../Signal/libsignal'
 import type { AuthenticationState, MediaType, SocketConfig, WAVersion } from '../Types'
 import { Browsers } from '../Utils'
 import logger from '../Utils/logger'
-import { version } from './baileys-version.json'
+import { version } from './al-e-dev-version.json'
 
 export const UNAUTHORIZED_CODES = [401, 403, 419]
 
@@ -67,7 +66,8 @@ export const DEFAULT_CONNECTION_CONFIG: SocketConfig = {
 	},
 	getMessage: async() => undefined,
 	cachedGroupMetadata: async() => undefined,
-	makeSignalRepository: makeLibSignalRepository
+	makeSignalRepository: makeLibSignalRepository,
+	countryCode: 'US',
 }
 
 export const MEDIA_PATH_MAP: { [T in MediaType]?: string } = {

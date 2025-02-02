@@ -22,7 +22,9 @@ const getUserAgent = (config: SocketConfig): proto.ClientPayload.IUserAgent => {
 		device: 'Desktop',
 		osBuildNumber: '0.1',
 		localeLanguageIso6391: 'en',
-		localeCountryIso31661Alpha2: 'US'
+		mnc: '000',
+		mcc: '000',
+		localeCountryIso31661Alpha2: config.countryCode,
 	}
 }
 
@@ -33,7 +35,7 @@ const PLATFORM_MAP = {
 
 const getWebInfo = (config: SocketConfig): proto.ClientPayload.IWebInfo => {
 	let webSubPlatform = proto.ClientPayload.WebInfo.WebSubPlatform.WEB_BROWSER
-	if(config.syncFullHistory && PLATFORM_MAP[config.browser[0]]) {
+	if (config.syncFullHistory && PLATFORM_MAP[config.browser[0]]) {
 		webSubPlatform = PLATFORM_MAP[config.browser[0]]
 	}
 
@@ -57,7 +59,8 @@ export const generateLoginNode = (userJid: string, config: SocketConfig): proto.
 	const { user, device } = jidDecode(userJid)!
 	const payload: proto.IClientPayload = {
 		...getClientPayload(config),
-		passive: true,
+		passive: false,
+		pull: true,
 		username: +user,
 		device: device,
 	}
@@ -90,6 +93,7 @@ export const generateRegistrationNode = (
 	const registerPayload: proto.IClientPayload = {
 		...getClientPayload(config),
 		passive: false,
+		pull: false,
 		devicePairingData: {
 			buildHash: appVersionBuf,
 			deviceProps: companionProto,
@@ -118,7 +122,7 @@ export const configureSuccessfulPairing = (
 	const deviceNode = getBinaryNodeChild(pairSuccessNode, 'device')
 	const businessNode = getBinaryNodeChild(pairSuccessNode, 'biz')
 
-	if(!deviceIdentityNode || !deviceNode) {
+	if (!deviceIdentityNode || !deviceNode) {
 		throw new Boom('Missing device-identity or device in pair success node', { data: stanza })
 	}
 
@@ -128,20 +132,20 @@ export const configureSuccessfulPairing = (
 	const { details, hmac } = proto.ADVSignedDeviceIdentityHMAC.decode(deviceIdentityNode.content as Buffer)
 	// check HMAC matches
 	const advSign = hmacSign(details, Buffer.from(advSecretKey, 'base64'))
-	if(Buffer.compare(hmac, advSign) !== 0) {
+	if (Buffer.compare(hmac, advSign) !== 0) {
 		throw new Boom('Invalid account signature')
 	}
 
 	const account = proto.ADVSignedDeviceIdentity.decode(details)
 	const { accountSignatureKey, accountSignature, details: deviceDetails } = account
 	// verify the device signature matches
-	const accountMsg = Buffer.concat([ Buffer.from([6, 0]), deviceDetails, signedIdentityKey.public ])
-	if(!Curve.verify(accountSignatureKey, accountMsg, accountSignature)) {
+	const accountMsg = Buffer.concat([Buffer.from([6, 0]), deviceDetails, signedIdentityKey.public])
+	if (!Curve.verify(accountSignatureKey, accountMsg, accountSignature)) {
 		throw new Boom('Failed to verify account signature')
 	}
 
 	// sign the details with our identity key
-	const deviceMsg = Buffer.concat([ Buffer.from([6, 1]), deviceDetails, signedIdentityKey.public, accountSignatureKey ])
+	const deviceMsg = Buffer.concat([Buffer.from([6, 1]), deviceDetails, signedIdentityKey.public, accountSignatureKey])
 	account.deviceSignature = Curve.sign(signedIdentityKey.private, deviceMsg)
 
 	const identity = createSignalIdentity(jid, accountSignatureKey)
@@ -159,7 +163,7 @@ export const configureSuccessfulPairing = (
 		content: [
 			{
 				tag: 'pair-device-sign',
-				attrs: { },
+				attrs: {},
 				content: [
 					{
 						tag: 'device-identity',
@@ -178,6 +182,7 @@ export const configureSuccessfulPairing = (
 			...(signalIdentities || []),
 			identity
 		],
+		registered: true,
 		platform: platformNode?.attrs.name
 	}
 
@@ -194,7 +199,7 @@ export const encodeSignedDeviceIdentity = (
 	account = { ...account }
 	// set to null if we are not to include the signature key
 	// or if we are including the signature key but it is empty
-	if(!includeSignatureKey || !account.accountSignatureKey?.length) {
+	if (!includeSignatureKey || !account.accountSignatureKey?.length) {
 		account.accountSignatureKey = null
 	}
 

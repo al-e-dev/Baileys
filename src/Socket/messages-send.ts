@@ -276,24 +276,24 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 		return msgId
 	}
 
-	const createParticipantNodes = async(
+	const createParticipantNodes = async (
 		jids: string[],
 		message: proto.IMessage,
 		extraAttrs?: BinaryNode['attrs']
-	) => {
+	): Promise<{ nodes: BinaryNode[], shouldIncludeDeviceIdentity: boolean }> => {
 		const patched = await patchMessageBeforeSending(message, jids)
 		const bytes = encodeWAMessage(patched)
-
+		
 		let shouldIncludeDeviceIdentity = false
 		const nodes = await Promise.all(
 			jids.map(
-				async jid => {
+				async (jid) => {
 					const { type, ciphertext } = await signalRepository
-						.encryptMessage({ jid, data: bytes })
-					if(type === 'pkmsg') {
+					.encryptMessage({ jid, data: bytes })
+					if (type === 'pkmsg') {
 						shouldIncludeDeviceIdentity = true
 					}
-
+		
 					const node: BinaryNode = {
 						tag: 'to',
 						attrs: { jid },
@@ -869,6 +869,7 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 				)
 				const isDeleteMsg = 'delete' in content && !!content.delete
 				const isEditMsg = 'edit' in content && !!content.edit
+				const isAiMsg = 'ai' in content && !!content.ai;
 				const isPinMsg = 'pin' in content && !!content.pin
 				const isPollMessage = 'poll' in content && !!content.poll
 				const additionalAttributes: BinaryNodeAttributes = { }
@@ -893,7 +894,14 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 							polltype: 'creation'
 						},
 					} as BinaryNode)
-				}
+				} else if (isAiMsg) {
+                    additionalNodes.push({
+                        attrs: {
+                            biz_bot: '1'
+                        },
+                        tag: "bot"
+                    });
+                }
 
 				if (mediaHandle) {
 					additionalAttributes['media_id'] = mediaHandle
