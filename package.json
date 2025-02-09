@@ -1,6 +1,6 @@
 {
-  "name": "@al-e-dev/baileys",
-  "version": "6.7.9",
+  "name": "@nazi-team/baileys",
+  "version": "6.8.0",
   "description": "WhatsApp API",
   "keywords": [
     "whatsapp",
@@ -12,9 +12,9 @@
     "automation",
     "multi-device"
   ],
-  "homepage": "https://github.com/al-e-dev/Baileys",
+  "homepage": "https://github.com/Nazi-Team/Baileys",
   "repository": {
-    "url": "git@github.com:al-e-dev/Baileys.git"
+    "url": "git@github.com:Nazi-Team/Baileys.git"
   },
   "license": "MIT",
   "author": "Adhiraj Singh",
@@ -52,7 +52,7 @@
     "cache-manager": "^5.7.6",
     "futoin-hkdf": "^1.5.1",
     "libphonenumber-js": "^1.10.20",
-    "libsignal": "github:al-e-dev/libsignal-node",
+    "libsignal": "github:Nazi-Team/libsignal-node",
     "lodash": "^4.17.21",
     "music-metadata": "^7.12.3",
     "pino": "^7.0.0",

@@ -869,8 +869,9 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 				)
 				const isDeleteMsg = 'delete' in content && !!content.delete
 				const isEditMsg = 'edit' in content && !!content.edit
-				const isAiMsg = 'ai' in content && !!content.ai;
+				const isAiMsg = 'ai' in content && !!content.ai
 				const isPinMsg = 'pin' in content && !!content.pin
+				const isKeepMsg = 'keep' in content && content.keep
 				const isPollMessage = 'poll' in content && !!content.poll
 				const additionalAttributes: BinaryNodeAttributes = {}
 				const additionalNodes: BinaryNode[] = []
@@ -894,6 +895,8 @@ export const makeMessagesSocket = (config: SocketConfig) => {
 							polltype: 'creation'
 						},
 					} as BinaryNode)
+				} else if (isKeepMsg) {
+					additionalAttributes.edit = '6'
 				} else if (isAiMsg) {
 					additionalNodes.push({
 						attrs: {
